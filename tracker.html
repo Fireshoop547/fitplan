@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Tracker — FitPlan</title>
+    <meta name="description" content="Track your workouts and bodyweight over time. See your streak, weight trend chart, and monthly activity.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .tracker-page {
+            padding: 100px 40px 80px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        /* ---- Stats bar ---- */
+        .tracker-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 48px;
+        }
+
+        .stat-card {
+            background: rgba(18,18,22,0.5);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 20px;
+            padding: 28px 24px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s, transform 0.25s;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+        }
+
+        .stat-card:hover {
+            border-color: rgba(255,107,53,0.25);
+            transform: translateY(-3px);
+        }
+
+        .stat-icon { font-size: 2rem; line-height: 1; margin-bottom: 10px; }
+
+        .stat-value {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat-value.accent { color: var(--accent); }
+        .stat-value.green  { color: #22c55e; }
+        .stat-value.red    { color: #ef4444; }
+
+        .stat-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .stat-sub {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+            opacity: 0.65;
+        }
+
+        /* ---- Grid layout ---- */
+        .tracker-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .tracker-card {
+            background: rgba(18,18,22,0.42);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px;
+            padding: 28px;
+            position: relative;
+        }
+
+        .tracker-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 22px;
+        }
+
+        .tracker-card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* ---- Log form ---- */
+        .log-form {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .log-form .fg { flex: 1; min-width: 90px; }
+
+        .log-form label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .log-form input,
+        .log-form select {
+            width: 100%;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 10px 12px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.88rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .log-form input:focus,
+        .log-form select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .log-form select option,
+        .log-form select optgroup { background: #16161c; }
+
+        /* ---- Entries list ---- */
+        .entries-list {
+            max-height: 210px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,107,53,0.3) transparent;
+        }
+
+        .entry-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .entry-row:last-child { border-bottom: none; }
+
+        .entry-date {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            min-width: 90px;
+        }
+
+        .entry-name {
+            flex: 1;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .entry-val {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .entry-del {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.18);
+            cursor: pointer;
+            padding: 3px 6px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            line-height: 1;
+            transition: color 0.2s, background 0.2s;
+            font-family: inherit;
+        }
+
+        .entry-del:hover { color: #ef4444; background: rgba(239,68,68,0.08); }
+
+        /* ---- Chart ---- */
+        .chart-wrap {
+            position: relative;
+            height: 210px;
+        }
+
+        .chart-empty {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+        }
+
+        .chart-empty-icon { font-size: 2.8rem; opacity: 0.3; }
+
+        /* ---- Range / nav buttons ---- */
+        .range-btns { display: flex; gap: 6px; align-items: center; }
+
+        .range-btn {
+            padding: 5px 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: transparent;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+            line-height: 1.4;
+        }
+
+        .range-btn:hover { border-color: rgba(255,107,53,0.4); color: var(--accent); }
+        .range-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+        /* ---- Activity calendar ---- */
+        .cal-month-label {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            min-width: 130px;
+            text-align: center;
+        }
+
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-top: 4px;
+        }
+
+        .cal-head {
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            padding-bottom: 4px;
+        }
+
+        .cal-day {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: rgba(255,255,255,0.03);
+            transition: background 0.2s;
+            position: relative;
+        }
+
+        .cal-day.empty { background: transparent; }
+
+        .cal-day.has-workout {
+            background: rgba(255,107,53,0.15);
+            color: var(--accent);
+            border: 1px solid rgba(255,107,53,0.3);
+        }
+
+        .cal-day.has-workout::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        .cal-day.today {
+            border: 1.5px solid rgba(255,107,53,0.55);
+        }
+
+        .cal-day.today.has-workout {
+            background: rgba(255,107,53,0.28);
+            box-shadow: 0 0 10px rgba(255,107,53,0.25);
+        }
+
+        /* ---- Empty state ---- */
+        .empty-state {
+            text-align: center;
+            padding: 28px 16px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon { font-size: 2.8rem; opacity: 0.3; margin-bottom: 8px; }
+        .empty-state p { font-size: 0.85rem; margin: 0; line-height: 1.6; }
+
+        .stat-icon svg { transition: opacity 0.4s, filter 0.4s, color 0.4s; }
+
+        /* ---- Toast ---- */
+        .tracker-toast {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: rgba(14,14,18,0.96);
+            border: 1px solid rgba(255,107,53,0.4);
+            border-radius: 12px;
+            padding: 12px 24px;
+            color: var(--text-primary);
+            font-size: 0.88rem;
+            font-weight: 600;
+            z-index: 9999;
+            transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+            backdrop-filter: blur(16px);
+            pointer-events: none;
+        }
+
+        .tracker-toast.show { transform: translateX(-50%) translateY(0); }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 960px) {
+            .tracker-grid { grid-template-columns: 1fr; }
+            .tracker-stats { gap: 12px; }
+        }
+
+        @media (max-width: 640px) {
+            .tracker-page { padding: 80px 18px 60px; }
+            .stat-value { font-size: 2rem; }
+            .tracker-stats { grid-template-columns: repeat(3,1fr); gap: 10px; }
+            .stat-card { padding: 18px 12px; }
+            .stat-icon { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-system" aria-hidden="true">
+        <div class="bg-grid"></div>
+        <div class="glow-orb glow-orb-1"></div>
+        <div class="glow-orb glow-orb-2"></div>
+        <div class="glow-orb-mouse" id="mouseGlowOrb"></div>
+        <div class="grain-overlay"></div>
+    </div>
+
+    <header class="header" role="banner">
+        <div class="header__left">
+            <a href="index.html" class="header__logo" aria-label="FitPlan home">FitPlan</a>
+        </div>
+        <div class="header__main">
+            <nav class="header__nav" role="navigation" aria-label="Main navigation">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="protocols.html" class="nav-link">Preset Workouts</a>
+                <a href="protocol-builder.html" class="nav-link">Build My Workout</a>
+                <a href="tools.html" class="nav-link">Tools</a>
+                <a href="tracker.html" class="nav-link">My Progress</a>
+            </nav>
+            <button class="theme-toggle" data-theme-toggle aria-label="Toggle dark/light theme">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
+        </div>
+        <div class="header__right"></div>
+    </header>
+
+    <main class="tracker-page">
+        <div class="section-header" style="margin-bottom: 36px;">
+            <span class="section-tag">Your Journey</span>
+            <h2 style="margin: 8px 0 4px;">Progress Tracker</h2>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; margin: 0;">Everything lives in your browser — private, instant, always there.</p>
+        </div>
+
+        <!-- STATS BAR -->
+        <div class="tracker-stats">
+            <div class="stat-card">
+                <div class="stat-icon" id="streakIcon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.35"><path d="M12 2c0 6-6 8-6 13a6 6 0 0 0 12 0c0-5-6-7-6-13z"/><path d="M12 12c0 3-2 4-2 6a2 2 0 0 0 4 0c0-2-2-3-2-6z"/></svg>
+                </div>
+                <div class="stat-value accent" id="statStreak">0</div>
+                <div class="stat-label">Day Streak</div>
+                <div class="stat-sub" id="statBestStreak">Best: 0 days</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><path d="M6.5 6.5h11"/><path d="M6.5 17.5h11"/><path d="M3 6.5a1 1 0 1 0 2 0 1 1 0 0 0-2 0z" fill="currentColor"/><path d="M3 17.5a1 1 0 1 0 2 0 1 1 0 0 0-2 0z" fill="currentColor"/><path d="M19 6.5a1 1 0 1 0 2 0 1 1 0 0 0-2 0z" fill="currentColor"/><path d="M19 17.5a1 1 0 1 0 2 0 1 1 0 0 0-2 0z" fill="currentColor"/><path d="M7.5 12h9"/></svg>
+                </div>
+                <div class="stat-value" id="statTotal">0</div>
+                <div class="stat-label">Workouts Logged</div>
+                <div class="stat-sub" id="statMonth">0 this month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><path d="M8 7l4-4 4 4"/><path d="M16 17l-4 4-4-4"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+                </div>
+                <div class="stat-value" id="statWeightChange">—</div>
+                <div class="stat-label">Weight Change</div>
+                <div class="stat-sub" id="statCurrentWeight">Log a weigh-in first</div>
+            </div>
+        </div>
+
+        <!-- GRID -->
+        <div class="tracker-grid">
+
+            <!-- Log Weight -->
+            <div class="tracker-card">
+                <div class="tracker-card-header">
+                    <span class="tracker-card-title">Log Weight</span>
+                </div>
+                <div class="log-form">
+                    <div class="fg">
+                        <label>Date</label>
+                        <input type="date" id="weightDate">
+                    </div>
+                    <div class="fg">
+                        <label>Weight (lbs)</label>
+                        <input type="number" id="weightValue" placeholder="185" min="50" max="700" step="0.1" inputmode="decimal">
+                    </div>
+                    <button class="btn btn-primary" style="padding:10px 16px;white-space:nowrap;flex-shrink:0;" onclick="logWeight()">+ Log</button>
+                </div>
+                <div class="entries-list" id="weightList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚖️</div>
+                        <p>No weigh-ins yet.<br>Log your starting weight above.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weight Chart -->
+            <div class="tracker-card">
+                <div class="tracker-card-header">
+                    <span class="tracker-card-title">Weight Trend</span>
+                    <div class="range-btns">
+                        <button class="range-btn" data-range="30" onclick="setChartRange(30,this)">30D</button>
+                        <button class="range-btn active" data-range="90" onclick="setChartRange(90,this)">90D</button>
+                        <button class="range-btn" data-range="0" onclick="setChartRange(0,this)">All</button>
+                    </div>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="weightChart"></canvas>
+                    <div class="chart-empty" id="weightChartEmpty">
+                        <div class="chart-empty-icon">📈</div>
+                        <span>Log weights to see your trend</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log Workout -->
+            <div class="tracker-card">
+                <div class="tracker-card-header">
+                    <span class="tracker-card-title">Log Workout</span>
+                </div>
+                <div class="log-form">
+                    <div class="fg" style="flex:2;min-width:140px;">
+                        <label>Workout</label>
+                        <select id="workoutName" onchange="handleWorkoutSelect(this)">
+                            <option value="">Select a workout…</option>
+                            <optgroup label="Strength">
+                                <option>Foundational Strength</option>
+                                <option>Elite Strength Protocol</option>
+                                <option>Competition Periodization</option>
+                            </optgroup>
+                            <optgroup label="Hypertrophy">
+                                <option>Upper/Lower Hypertrophy</option>
+                                <option>Push/Pull/Legs Split</option>
+                                <option>Conditioning Foundation</option>
+                            </optgroup>
+                            <optgroup label="Home / Calisthenics">
+                                <option>Bodyweight Strength Start</option>
+                                <option>Calisthenics Foundation+</option>
+                                <option>Home Upper/Lower Split</option>
+                            </optgroup>
+                            <optgroup label="Other">
+                                <option value="__custom__">— Type custom name —</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="fg" id="customGroup" style="flex:2;min-width:140px;display:none;">
+                        <label>Custom Name</label>
+                        <input type="text" id="customWorkout" placeholder="e.g. Leg Day, Run 5k…">
+                    </div>
+                    <div class="fg">
+                        <label>Date</label>
+                        <input type="date" id="workoutDate">
+                    </div>
+                    <button class="btn btn-primary" style="padding:10px 16px;white-space:nowrap;flex-shrink:0;" onclick="logWorkout()">+ Log</button>
+                </div>
+                <div class="entries-list" id="workoutList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💪</div>
+                        <p>No workouts logged yet.<br>Smash one and log it above.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Calendar -->
+            <div class="tracker-card">
+                <div class="tracker-card-header">
+                    <span class="tracker-card-title">Monthly Activity</span>
+                    <div class="range-btns">
+                        <button class="range-btn" onclick="shiftMonth(-1)">‹</button>
+                        <span class="cal-month-label" id="calMonthLabel"></span>
+                        <button class="range-btn" onclick="shiftMonth(1)">›</button>
+                    </div>
+                </div>
+                <div id="calendarWrap"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <div class="tracker-toast" id="trackerToast"></div>
+
+    <footer class="footer" role="contentinfo">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>FitPlan</h4>
+                <p>Science-backed workout programs for every level. Built for results.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Training</h4>
+                <ul>
+                    <li><a href="protocols.html">Preset Plans</a></li>
+                    <li><a href="protocol-builder.html">Custom Plan</a></li>
+                    <li><a href="tools.html">Training Tools</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Navigate</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="tracker.html">My Progress</a></li>
+                    <li><a href="tools.html">Calculators</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 FitPlan. Built by Adam Parks, Mikiyas Wolde &amp; Tarun Sreekanth.</p>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+        // ===== TRACKER =====
+        const WK = 'fitplan_weights';
+        const WO = 'fitplan_workouts';
+        let wChart = null;
+        let chartRange = 90;
+        let calViewDate = new Date();
+
+        function getW()  { return JSON.parse(localStorage.getItem(WK) || '[]'); }
+        function getWO() { return JSON.parse(localStorage.getItem(WO) || '[]'); }
+        function saveW(d)  { localStorage.setItem(WK, JSON.stringify(d)); }
+        function saveWO(d) { localStorage.setItem(WO, JSON.stringify(d)); }
+
+        function todayStr() {
+            const d = new Date();
+            return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+        }
+
+        function pad(n) { return String(n).padStart(2,'0'); }
+
+        function fmtDate(ds) {
+            return new Date(ds + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+        }
+
+        // ---- Main render ----
+        function renderAll() {
+            renderStats();
+            renderWeightList();
+            renderChart();
+            renderWorkoutList();
+            renderCalendar();
+        }
+
+        // ---- Stats ----
+        function renderStats() {
+            const weights  = getW();
+            const workouts = getWO();
+            const { current, best } = calcStreak(workouts);
+
+            // Streak
+            animateNum('statStreak', current);
+            document.getElementById('statBestStreak').textContent = `Best: ${best} day${best !== 1 ? 's' : ''}`;
+            const icon = document.getElementById('streakIcon');
+            icon.querySelector('svg').style.opacity = current > 0 ? '1' : '0.3';
+            icon.querySelector('svg').style.color = current > 0 ? 'var(--accent)' : 'currentColor';
+            icon.querySelector('svg').style.filter = current > 0 ? 'drop-shadow(0 0 8px rgba(255,107,53,0.6))' : 'none';
+
+            // Workouts
+            animateNum('statTotal', workouts.length);
+            const ym = new Date().toISOString().slice(0,7);
+            const mc = workouts.filter(w => w.date.startsWith(ym)).length;
+            document.getElementById('statMonth').textContent = `${mc} this month`;
+
+            // Weight change
+            const wcEl = document.getElementById('statWeightChange');
+            if (weights.length >= 2) {
+                const sorted = [...weights].sort((a,b) => a.date.localeCompare(b.date));
+                const delta = sorted[sorted.length-1].weight - sorted[0].weight;
+                wcEl.textContent = (delta >= 0 ? '+' : '') + delta.toFixed(1) + ' lbs';
+                wcEl.className = 'stat-value ' + (delta < 0 ? 'green' : delta > 0 ? 'red' : '');
+                document.getElementById('statCurrentWeight').textContent =
+                    `Now: ${sorted[sorted.length-1].weight} lbs · Start: ${sorted[0].weight}`;
+            } else if (weights.length === 1) {
+                wcEl.textContent = '—';
+                wcEl.className = 'stat-value';
+                document.getElementById('statCurrentWeight').textContent = `Current: ${weights[0].weight} lbs`;
+            } else {
+                wcEl.textContent = '—';
+                wcEl.className = 'stat-value';
+                document.getElementById('statCurrentWeight').textContent = 'Log a weigh-in first';
+            }
+        }
+
+        function calcStreak(workouts) {
+            if (!workouts.length) return { current: 0, best: 0 };
+            const ds = new Set(workouts.map(w => w.date));
+
+            // Current: walk back from today
+            let current = 0;
+            const now = new Date();
+            for (let i = 0; i < 365; i++) {
+                const d = new Date(now);
+                d.setDate(d.getDate() - i);
+                const k = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+                if (ds.has(k)) {
+                    current++;
+                } else if (i > 0) {
+                    break;
+                }
+            }
+
+            // Best: longest consecutive run
+            const sorted = [...ds].sort();
+            let best = 0, run = 0, prev = null;
+            for (const s of sorted) {
+                const ms = new Date(s + 'T12:00:00').getTime();
+                if (prev !== null && ms - prev === 86400000) {
+                    run++;
+                } else {
+                    run = 1;
+                }
+                if (run > best) best = run;
+                prev = ms;
+            }
+
+            return { current, best };
+        }
+
+        function animateNum(id, target) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const from = parseInt(el.textContent) || 0;
+            if (from === target) return;
+            const dur = 700, t0 = performance.now();
+            const tick = now => {
+                const p = Math.min((now - t0) / dur, 1);
+                const e = 1 - Math.pow(1 - p, 3);
+                el.textContent = Math.round(from + (target - from) * e);
+                if (p < 1) requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+        }
+
+        // ---- Weight list ----
+        function renderWeightList() {
+            const weights = getW().sort((a,b) => b.date.localeCompare(a.date));
+            const el = document.getElementById('weightList');
+            if (!weights.length) {
+                el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚖️</div><p>No weigh-ins yet.<br>Log your starting weight above.</p></div>`;
+                return;
+            }
+            el.innerHTML = weights.map((w, i) => `
+                <div class="entry-row">
+                    <span class="entry-date">${fmtDate(w.date)}</span>
+                    <span class="entry-val">${w.weight} lbs</span>
+                    <button class="entry-del" onclick="deleteWeight(${i})" title="Remove">✕</button>
+                </div>
+            `).join('');
+        }
+
+        // ---- Chart ----
+        function renderChart() {
+            const raw = getW().sort((a,b) => a.date.localeCompare(b.date));
+            const emptyEl = document.getElementById('weightChartEmpty');
+            const canvas  = document.getElementById('weightChart');
+
+            if (!raw.length) {
+                emptyEl.style.display = 'flex';
+                canvas.style.display  = 'none';
+                if (wChart) { wChart.destroy(); wChart = null; }
+                return;
+            }
+
+            let pts = raw;
+            if (chartRange > 0) {
+                const cutoff = new Date();
+                cutoff.setDate(cutoff.getDate() - chartRange);
+                const cs = cutoff.toISOString().slice(0,10);
+                const filt = raw.filter(w => w.date >= cs);
+                pts = filt.length ? filt : raw.slice(-Math.min(10, raw.length));
+            }
+
+            emptyEl.style.display = 'none';
+            canvas.style.display  = 'block';
+
+            const labels = pts.map(w =>
+                new Date(w.date + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric' })
+            );
+            const data = pts.map(w => w.weight);
+
+            if (wChart) wChart.destroy();
+
+            const ctx = canvas.getContext('2d');
+            const grad = ctx.createLinearGradient(0, 0, 0, 210);
+            grad.addColorStop(0, 'rgba(255,107,53,0.28)');
+            grad.addColorStop(1, 'rgba(255,107,53,0)');
+
+            wChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        data,
+                        borderColor: '#FF6B35',
+                        backgroundColor: grad,
+                        borderWidth: 2.5,
+                        pointBackgroundColor: '#FF6B35',
+                        pointRadius: data.length > 25 ? 0 : 4,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(14,14,18,0.95)',
+                            borderColor: 'rgba(255,107,53,0.4)',
+                            borderWidth: 1,
+                            titleColor: '#fff',
+                            bodyColor: 'rgba(255,255,255,0.65)',
+                            padding: 10,
+                            displayColors: false,
+                            callbacks: { label: c => `${c.raw} lbs` }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            border: { display: false },
+                            ticks: {
+                                color: 'rgba(255,255,255,0.38)',
+                                font: { size: 11 },
+                                maxTicksLimit: 6,
+                            }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.04)' },
+                            border: { display: false },
+                            ticks: {
+                                color: 'rgba(255,255,255,0.38)',
+                                font: { size: 11 },
+                                callback: v => v + ' lbs',
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function setChartRange(r, btn) {
+            chartRange = r;
+            document.querySelectorAll('.range-btn[data-range]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderChart();
+        }
+
+        // ---- Workout list ----
+        function renderWorkoutList() {
+            const wos = getWO().sort((a,b) => b.date.localeCompare(a.date)).slice(0, 20);
+            const el = document.getElementById('workoutList');
+            if (!wos.length) {
+                el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">💪</div><p>No workouts logged yet.<br>Smash one and log it above.</p></div>`;
+                return;
+            }
+            el.innerHTML = wos.map((w, i) => `
+                <div class="entry-row">
+                    <span class="entry-date">${fmtDate(w.date)}</span>
+                    <span class="entry-name">${w.name}</span>
+                    <button class="entry-del" onclick="deleteWorkout(${i})" title="Remove">✕</button>
+                </div>
+            `).join('');
+        }
+
+        // ---- Calendar ----
+        function renderCalendar() {
+            const woDates = new Set(getWO().map(w => w.date));
+            const year  = calViewDate.getFullYear();
+            const month = calViewDate.getMonth();
+            const t = todayStr();
+
+            document.getElementById('calMonthLabel').textContent =
+                calViewDate.toLocaleDateString('en-US', { month:'long', year:'numeric' });
+
+            const firstDow   = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month+1, 0).getDate();
+
+            const HEADS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+            let html = '<div class="cal-grid">';
+            HEADS.forEach(h => { html += `<div class="cal-head">${h}</div>`; });
+            for (let i = 0; i < firstDow; i++) html += '<div class="cal-day empty"></div>';
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const ds = `${year}-${pad(month+1)}-${pad(d)}`;
+                const hw = woDates.has(ds);
+                const it = ds === t;
+                const cls = ['cal-day', hw ? 'has-workout' : '', it ? 'today' : ''].filter(Boolean).join(' ');
+                const count = getWO().filter(w => w.date === ds).length;
+                const tip = hw ? `${count} workout${count>1?'s':''}` : '';
+                html += `<div class="${cls}" title="${tip}">${d}</div>`;
+            }
+
+            html += '</div>';
+            document.getElementById('calendarWrap').innerHTML = html;
+        }
+
+        function shiftMonth(dir) {
+            calViewDate = new Date(calViewDate.getFullYear(), calViewDate.getMonth() + dir, 1);
+            renderCalendar();
+        }
+
+        // ---- Log actions ----
+        function logWeight() {
+            const date = document.getElementById('weightDate').value;
+            const val  = parseFloat(document.getElementById('weightValue').value);
+            if (!date || isNaN(val) || val <= 0) { showToast('Enter a valid date and weight.'); return; }
+
+            const weights = getW();
+            const idx = weights.findIndex(w => w.date === date);
+            if (idx >= 0) {
+                weights[idx].weight = val;
+                showToast('⚖️ Weight updated!');
+            } else {
+                weights.push({ date, weight: val });
+                showToast('⚖️ Weight logged!');
+            }
+            saveW(weights);
+            document.getElementById('weightValue').value = '';
+            renderAll();
+        }
+
+        function logWorkout() {
+            const date = document.getElementById('workoutDate').value;
+            const sel  = document.getElementById('workoutName').value;
+            const name = sel === '__custom__'
+                ? document.getElementById('customWorkout').value.trim()
+                : sel;
+            if (!date || !name) { showToast('Choose a workout and date first.'); return; }
+
+            const wos = getWO();
+            wos.push({ date, name });
+            saveWO(wos);
+
+            document.getElementById('workoutName').value = '';
+            document.getElementById('customWorkout').value = '';
+            document.getElementById('customGroup').style.display = 'none';
+            showToast('💪 Workout logged!');
+            renderAll();
+        }
+
+        function handleWorkoutSelect(sel) {
+            document.getElementById('customGroup').style.display =
+                sel.value === '__custom__' ? '' : 'none';
+        }
+
+        function deleteWeight(sortedIdx) {
+            const weights = getW().sort((a,b) => b.date.localeCompare(a.date));
+            weights.splice(sortedIdx, 1);
+            saveW(weights);
+            renderAll();
+            showToast('Entry removed.');
+        }
+
+        function deleteWorkout(sortedIdx) {
+            const wos = getWO().sort((a,b) => b.date.localeCompare(a.date));
+            wos.splice(sortedIdx, 1);
+            // Re-save in original (unsorted) form
+            saveWO(wos);
+            renderAll();
+            showToast('Workout removed.');
+        }
+
+        // ---- Toast ----
+        function showToast(msg) {
+            const el = document.getElementById('trackerToast');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 2600);
+        }
+
+        // ---- Init ----
+        function initTracker() {
+            if (!document.getElementById('trackerToast')) return;
+            const t = todayStr();
+            document.getElementById('weightDate').value  = t;
+            document.getElementById('workoutDate').value = t;
+            renderAll();
+        }
+
+        document.addEventListener('DOMContentLoaded', initTracker);
+    </script>
+</body>
+</html>

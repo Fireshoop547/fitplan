@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitness Tools & Calculators — FitPlan</title>
+    <meta name="description" content="Free fitness calculators: 1RM estimator, weekly volume guide, and training intensity calculator. Science-backed tools for precision training.">
+    <meta property="og:title" content="Fitness Calculators — FitPlan">
+    <meta property="og:description" content="Calculate your 1RM, optimal training volume, and working weights. Free, science-backed tools.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .tools {
+            padding: 100px 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 28px;
+            margin-bottom: 80px;
+        }
+
+        .tool-card {
+            background: rgba(18, 18, 22, 0.35);
+            backdrop-filter: blur(16px) saturate(140%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 18px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s ease, box-shadow 0.4s ease;
+        }
+
+        .tool-card:hover {
+            border-color: rgba(59, 130, 246, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .tool-card h3 {
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            font-size: 1.15rem;
+        }
+
+        .tool-form { margin-top: 22px; }
+
+        .form-group { margin-bottom: 18px; }
+
+        .form-group label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-bottom: 7px;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: rgba(10, 10, 12, 0.6);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+            -webkit-appearance: none;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .form-group input::placeholder { color: var(--text-muted); }
+
+        .calc-result {
+            display: none;
+            margin-top: 22px;
+            padding: 20px;
+            background: rgba(59, 130, 246, 0.06);
+            border-radius: 12px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .calc-result-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .calc-result-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: -0.03em;
+            line-height: 1;
+        }
+
+        .calc-result-sub {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            display: block;
+        }
+
+        /* Info section */
+        .tools-info {
+            padding: 80px 40px 100px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .info-container { max-width: 1100px; margin: 0 auto; }
+
+        .info-container > h2 {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .info-card {
+            background: rgba(18, 18, 22, 0.3);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            transition: var(--transition);
+        }
+
+        .info-card:hover {
+            border-color: rgba(59, 130, 246, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .info-card h4 {
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .info-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.65;
+        }
+
+        .tdee-rows { display: flex; flex-direction: column; gap: 10px; }
+
+        .tdee-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .tdee-cut { background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.2); }
+        .tdee-maintain { background: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.2); }
+        .tdee-bulk { background: rgba(34, 197, 94, 0.08); border-color: rgba(34, 197, 94, 0.2); }
+
+        .tdee-row-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .tdee-note {
+            font-weight: 400;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .tdee-row-value {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .tdee-cut .tdee-row-value { color: #ef4444; }
+        .tdee-maintain .tdee-row-value { color: var(--accent); }
+        .tdee-bulk .tdee-row-value { color: #22c55e; }
+
+        @media (max-width: 768px) {
+            .tools, .tools-info { padding: 60px 20px; }
+            .tools-grid { grid-template-columns: 1fr; }
+            .info-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- INTERACTIVE BACKGROUND -->
+    <div class="bg-system" aria-hidden="true">
+        <div class="bg-grid"></div>
+        <div class="glow-orb glow-orb-1"></div>
+        <div class="glow-orb glow-orb-2"></div>
+        <div class="glow-orb-mouse" id="mouseGlowOrb"></div>
+        <div class="grain-overlay"></div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="header" role="banner">
+        <div class="header__left">
+            <a href="index.html" class="header__logo" aria-label="FitPlan home">FitPlan</a>
+        </div>
+        <div class="header__main">
+            <nav class="header__nav" role="navigation" aria-label="Main navigation">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="protocols.html" class="nav-link">Preset Workouts</a>
+                <a href="protocol-builder.html" class="nav-link">Build My Workout</a>
+                <a href="tools.html" class="nav-link">Tools</a>
+                <a href="tracker.html" class="nav-link">My Progress</a>
+            </nav>
+            <button class="theme-toggle" data-theme-toggle aria-label="Toggle dark/light theme">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
+        </div>
+        <div class="header__right">
+            <button class="btn btn-primary" onclick="window.location.href='protocol-builder.html'">Build Routine</button>
+        </div>
+    </header>
+
+    <!-- TOOLS SECTION -->
+    <section class="tools" aria-labelledby="tools-title">
+        <div class="section-header">
+            <span class="section-tag">Science Tools</span>
+            <h2 id="tools-title">Precision Training Calculators</h2>
+            <p style="margin-top: 12px; color: var(--text-secondary);">Data-driven tools to optimize your training intensity and volume. Results save automatically.</p>
+        </div>
+
+        <div class="tools-grid">
+
+            <!-- TDEE / CALORIE CALCULATOR -->
+            <div class="tool-card">
+                <div class="card-header-accent"></div>
+                <h3>TDEE & Calorie Calculator</h3>
+                <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 6px;">Enter your biometrics to get your maintenance calories plus cut and bulk targets.</p>
+
+                <div class="tool-form">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="tdeAge">Age</label>
+                            <input type="number" id="tdeAge" placeholder="25" min="13" max="100" inputmode="numeric">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="tdeGender">Sex</label>
+                            <select id="tdeGender">
+                                <option value="">Select</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="tdeFeet">Height (ft)</label>
+                            <input type="number" id="tdeFeet" placeholder="5" min="3" max="8" inputmode="numeric">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="tdeInches">Height (in)</label>
+                            <input type="number" id="tdeInches" placeholder="10" min="0" max="11" inputmode="numeric">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 18px;">
+                        <label for="tdeWeight">Weight (lbs)</label>
+                        <input type="number" id="tdeWeight" placeholder="185" min="50" max="700" inputmode="numeric">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tdeActivity">Activity Level</label>
+                        <select id="tdeActivity">
+                            <option value="">Select activity</option>
+                            <option value="1.2">Sedentary — desk job, little exercise</option>
+                            <option value="1.375">Lightly active — 1–3 days/week</option>
+                            <option value="1.55">Moderately active — 3–5 days/week</option>
+                            <option value="1.725">Very active — 6–7 days/week</option>
+                            <option value="1.9">Extremely active — physical job + training</option>
+                        </select>
+                    </div>
+
+                    <div id="tdeError" class="calc-error" role="alert"></div>
+
+                    <button class="btn btn-primary btn-large" style="width: 100%; margin-top: 4px;" onclick="calculateTDEE()" type="button">
+                        Calculate Calories
+                    </button>
+
+                    <div id="tdeResult" class="calc-result" role="status" aria-live="polite" style="display: none;">
+                        <div class="tdee-rows">
+                            <div class="tdee-row tdee-cut">
+                                <div class="tdee-row-label">Cut <span class="tdee-note">−500 cal/day · ~1 lb/week loss</span></div>
+                                <div class="tdee-row-value" id="tdeCut">—</div>
+                            </div>
+                            <div class="tdee-row tdee-maintain">
+                                <div class="tdee-row-label">Maintain <span class="tdee-note">your TDEE</span></div>
+                                <div class="tdee-row-value" id="tdeMaintenance">—</div>
+                            </div>
+                            <div class="tdee-row tdee-bulk">
+                                <div class="tdee-row-label">Lean Bulk <span class="tdee-note">+300 cal/day · ~0.5 lb/week gain</span></div>
+                                <div class="tdee-row-value" id="tdeBulk">—</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06);">
+                            <span class="calc-result-label">Daily Protein Target</span>
+                            <div class="calc-result-value" id="tdeProtein" style="font-size: 1.6rem;">—</div>
+                            <span class="calc-result-sub">~0.82 g/lb bodyweight · supports muscle retention</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1RM ESTIMATOR -->
+            <div class="tool-card">
+                <div class="card-header-accent"></div>
+                <h3>One-Rep Max Estimator</h3>
+                <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 6px;">Estimate your theoretical max lift from a submaximal set. Includes percentage breakdown.</p>
+
+                <div class="tool-form">
+                    <div class="form-group">
+                        <label for="ormWeight">Weight Lifted (lbs)</label>
+                        <input type="number" id="ormWeight" placeholder="225" min="1" max="2000" inputmode="numeric">
+                        <div class="quick-weights" role="group" aria-label="Quick weight presets">
+                            <button class="quick-weight" data-weight="135" type="button">135</button>
+                            <button class="quick-weight" data-weight="185" type="button">185</button>
+                            <button class="quick-weight" data-weight="225" type="button">225</button>
+                            <button class="quick-weight" data-weight="275" type="button">275</button>
+                            <button class="quick-weight" data-weight="315" type="button">315</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ormReps">Reps Completed</label>
+                        <input type="number" id="ormReps" placeholder="5" min="1" max="30" inputmode="numeric">
+                    </div>
+
+                    <div id="ormError" class="calc-error" role="alert"></div>
+
+                    <button class="btn btn-primary btn-large" style="width: 100%; margin-top: 4px;" onclick="calculateORM()" type="button">
+                        Calculate 1RM
+                    </button>
+
+                    <div id="ormResult" class="calc-result" role="status" aria-live="polite">
+                        <span class="calc-result-label">Your Estimated 1RM</span>
+                        <div class="calc-result-value" id="ormValue">—</div>
+                        <span class="calc-result-sub">Epley Formula · Results are estimates</span>
+                        <div class="calc-breakdown" id="ormBreakdown"></div>
+
+                        <div class="form-group" id="ormExerciseGroup" style="margin-top: 18px; margin-bottom: 0;">
+                            <label for="ormExercise">Generate a workout for</label>
+                            <select id="ormExercise">
+                                <option value="squat">Back Squat</option>
+                                <option value="bench">Bench Press</option>
+                                <option value="deadlift">Deadlift</option>
+                                <option value="ohp">Overhead Press</option>
+                            </select>
+                        </div>
+                        <button id="ormGenerateWorkout" class="btn btn-secondary btn-large" style="width: 100%; margin-top: 12px;" type="button">
+                            View Full Workout →
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VOLUME GUIDE -->
+            <div class="tool-card">
+                <div class="card-header-accent"></div>
+                <h3>Weekly Volume Guide</h3>
+                <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 6px;">Get target weekly working sets based on your experience level and exercise type.</p>
+
+                <div class="tool-form">
+                    <div class="form-group">
+                        <label for="volumeLevel">Experience Level</label>
+                        <select id="volumeLevel">
+                            <option value="">Select Level</option>
+                            <option value="beginner">Beginner (0–1 year)</option>
+                            <option value="intermediate">Intermediate (1–3 years)</option>
+                            <option value="advanced">Advanced (3+ years)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="volumeExercise">Exercise Type</label>
+                        <select id="volumeExercise">
+                            <option value="">Select Type</option>
+                            <option value="compound">Compound (Squat, Bench, Deadlift)</option>
+                            <option value="secondary">Secondary (Rows, Press Variations)</option>
+                            <option value="accessory">Accessory (Curls, Flyes, Raises)</option>
+                        </select>
+                    </div>
+
+                    <div id="volumeError" class="calc-error" role="alert"></div>
+
+                    <button class="btn btn-primary btn-large" style="width: 100%; margin-top: 4px;" onclick="calculateVolume()" type="button">
+                        Get Recommendation
+                    </button>
+
+                    <div id="volumeResult" class="calc-result" role="status" aria-live="polite">
+                        <span class="calc-result-label">Target Weekly Working Sets</span>
+                        <div class="calc-result-value" id="volumeValue">—</div>
+                        <span class="calc-result-sub" id="volumeDetails"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INTENSITY CALCULATOR -->
+            <div class="tool-card">
+                <div class="card-header-accent"></div>
+                <h3>Training Intensity Calculator</h3>
+                <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 6px;">Convert your 1RM into precise working weights for each training zone.</p>
+
+                <div class="tool-form">
+                    <div class="form-group">
+                        <label for="intensityORM">Your 1RM (lbs)</label>
+                        <input type="number" id="intensityORM" placeholder="315" min="1" max="2000" inputmode="numeric">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="intensityPercent">Training Zone</label>
+                        <select id="intensityPercent">
+                            <option value="">Select Zone</option>
+                            <option value="65">65% — Volume / Technique</option>
+                            <option value="70">70% — Hypertrophy (Light)</option>
+                            <option value="75">75% — Hypertrophy (Moderate)</option>
+                            <option value="80">80% — Strength</option>
+                            <option value="85">85% — Max Strength</option>
+                            <option value="90">90% — Power / Near-Max</option>
+                            <option value="95">95% — Competition Peak</option>
+                        </select>
+                    </div>
+
+                    <div id="intensityError" class="calc-error" role="alert"></div>
+
+                    <button class="btn btn-primary btn-large" style="width: 100%; margin-top: 4px;" onclick="calculateIntensity()" type="button">
+                        Calculate Weight
+                    </button>
+
+                    <div id="intensityResult" class="calc-result" role="status" aria-live="polite">
+                        <span class="calc-result-label">Working Weight</span>
+                        <div class="calc-result-value" id="intensityValue">—</div>
+                        <span class="calc-result-sub" id="intensityZone">Rounded to nearest 2.5 lbs</span>
+
+                        <div class="form-group" id="intensityExerciseGroup" style="margin-top: 18px; margin-bottom: 0;">
+                            <label for="intensityExercise">Generate a workout for</label>
+                            <select id="intensityExercise">
+                                <option value="squat">Back Squat</option>
+                                <option value="bench">Bench Press</option>
+                                <option value="deadlift">Deadlift</option>
+                                <option value="ohp">Overhead Press</option>
+                            </select>
+                        </div>
+                        <button id="intensityGenerateWorkout" class="btn btn-secondary btn-large" style="width: 100%; margin-top: 12px;" type="button">
+                            View Full Workout →
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- INFO SECTION -->
+    <section class="tools-info" aria-labelledby="info-title">
+        <div class="info-container">
+            <h2 id="info-title">How These Tools Work</h2>
+            <div class="info-grid">
+                <div class="info-card">
+                    <h4>1RM Estimator</h4>
+                    <p>Uses the Epley formula (Weight × (1 + Reps/30)) to estimate your one-rep max. Most accurate for sets of 1–6 reps. Use it to track strength progress and set your training percentages without risky maximal attempts.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Volume Guide</h4>
+                    <p>Research-backed recommendations for weekly working sets per muscle group. Based on the MEV/MAV/MRV framework. Beginners need less volume to grow; advanced lifters need significantly more to continue adapting.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Intensity Calculator</h4>
+                    <p>Converts your 1RM into percentages for structured training zones. Use 65–75% for technique and hypertrophy, 80–85% for strength, 85–95% for power and competition peaking. Rounds to nearest 2.5 lbs for real-world loading.</p>
+                </div>
+                <div class="info-card">
+                    <h4>TDEE Calculator</h4>
+                    <p>Uses the Mifflin-St Jeor equation to estimate your Basal Metabolic Rate, then multiplies by your activity factor to get Total Daily Energy Expenditure. Cut at −500 cal/day to lose ~1 lb/week. Lean bulk at +300 cal/day to gain muscle with minimal fat.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA SECTION -->
+    <section class="cta" aria-labelledby="cta-title">
+        <h2 id="cta-title">Ready to apply these metrics?</h2>
+        <p>Use our Program Builder to get a science-backed workout calibrated to your numbers.</p>
+        <button class="btn btn-primary btn-large" onclick="window.location.href='protocol-builder.html'">Build Your Protocol</button>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer" role="contentinfo">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>FitPlan</h4>
+                <p>Precision training protocols for every level.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Training</h4>
+                <ul>
+                    <li><a href="protocols.html">Preset Workouts</a></li>
+                    <li><a href="protocol-builder.html">Custom Plan</a></li>
+                    <li><a href="tools.html">Training Tools</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Navigate</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="index.html#faq">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 FitPlan. Built by Adam Parks, Mikiyas Wolde &amp; Tarun Sreekanth.</p>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+</body>
+</html>

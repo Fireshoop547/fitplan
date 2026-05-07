@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitPlan — Precision Training Protocol</title>
+    <meta name="description" content="Expertly-designed training protocols tailored to your level, goals, and lifestyle. Build your ideal physique with science-backed programming.">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="FitPlan — Precision Training Protocol">
+    <meta property="og:description" content="Science-backed training protocols for every level, goal, and schedule. Zero guesswork.">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="FitPlan — Precision Training">
+    <meta name="twitter:description" content="Stop guessing. Start building. Science-backed protocols that actually work.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- INTERACTIVE BACKGROUND -->
+    <div class="bg-system" aria-hidden="true">
+        <div class="bg-grid"></div>
+        <div class="glow-orb glow-orb-1"></div>
+        <div class="glow-orb glow-orb-2"></div>
+        <div class="glow-orb-mouse" id="mouseGlowOrb"></div>
+        <div class="grain-overlay"></div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="header" role="banner">
+        <div class="header__left">
+            <a href="index.html" class="header__logo" aria-label="FitPlan home">FitPlan</a>
+        </div>
+        <div class="header__main">
+            <nav class="header__nav" role="navigation" aria-label="Main navigation">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="protocols.html" class="nav-link">Preset Workouts</a>
+                <a href="protocol-builder.html" class="nav-link">Build My Workout</a>
+                <a href="tools.html" class="nav-link">Tools</a>
+                <a href="tracker.html" class="nav-link">My Progress</a>
+            </nav>
+            <button class="theme-toggle" data-theme-toggle aria-label="Toggle dark/light theme">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
+        </div>
+        <div class="header__right">
+        </div>
+    </header>
+
+    <!-- HERO BACKGROUND VIDEO -->
+    <div class="hero-video-wrap" aria-hidden="true">
+        <video class="hero-video" autoplay muted loop playsinline preload="auto">
+            <source src="workout.mp4" type="video/mp4">
+        </video>
+        <div class="hero-video-overlay"></div>
+    </div>
+
+    <!-- HERO SECTION -->
+    <section class="hero" aria-labelledby="hero-title">
+        <div class="hero__content">
+            <div class="hero__brand" aria-label="FitPlan">FitPlan</div>
+            <h1 class="hero__title" id="hero-title">Train smarter.<br><span class="highlight">Get results faster.</span></h1>
+            <p class="hero__subtitle">Science-backed workout programs built for your level, goals, and schedule. No guesswork — just the work.</p>
+            <div class="hero__cta">
+                <button class="btn btn-primary btn-large" onclick="window.location.href='protocol-builder.html'">Build Your Program</button>
+                <button class="btn btn-outline btn-large" onclick="window.location.href='protocols.html'">Browse Preset Plans</button>
+            </div>
+
+            <!-- ANIMATED STATS -->
+            <div class="hero__stats" aria-label="FitPlan by the numbers">
+                <div class="hero__stat">
+                    <span class="hero__stat-number" data-counter="12400" data-suffix="+">0</span>
+                    <span class="hero__stat-label">Active Lifters</span>
+                </div>
+                <div class="hero__stat">
+                    <span class="hero__stat-number" data-counter="48" data-suffix="">0</span>
+                    <span class="hero__stat-label">Programs</span>
+                </div>
+                <div class="hero__stat">
+                    <span class="hero__stat-number" data-counter="94" data-suffix="%">0</span>
+                    <span class="hero__stat-label">Success Rate</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero__visual" aria-hidden="true">
+            <div class="hero__image-frame">
+                <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=700&q=80&fit=crop&auto=format" alt="Athlete training in gym" class="hero__image" loading="eager">
+                <div class="hero__image-overlay">
+                    <div class="hero__card" id="heroRotatingCard">
+                        <div class="card-header-accent"></div>
+                        <div class="hero-card-level" id="heroCardLevel">BEGINNER</div>
+                        <div class="card-header" id="heroCardTitle">Foundational Strength</div>
+                        <div class="card-stats">
+                            <div class="stat">
+                                <span class="stat-label">Duration</span>
+                                <span class="stat-value" id="heroCardDuration">4 weeks</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Frequency</span>
+                                <span class="stat-value" id="heroCardFreq">3x/week</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Session</span>
+                                <span class="stat-value" id="heroCardSession">45 min</span>
+                            </div>
+                        </div>
+                        <div class="card-preview-bar">
+                            <div class="bar-fill" id="heroCardBar" style="width: 30%;"></div>
+                        </div>
+                        <div class="card-exercises" id="heroCardTags">
+                            <span class="exercise-tag">Compound</span>
+                            <span class="exercise-tag">Full Body</span>
+                        </div>
+                        <div class="hero-card-dots" id="heroCardDots"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TRUST BAR -->
+    <div class="trust-bar" role="complementary" aria-label="Trust indicators">
+        <span class="trust-bar-label">Trusted by 12,400+ lifters</span>
+        <div class="trust-divider" aria-hidden="true"></div>
+        <div class="trust-items">
+            <span class="trust-item">Science-backed programming</span>
+            <span class="trust-item">Progressive overload built-in</span>
+            <span class="trust-item">No BS, no fluff</span>
+            <span class="trust-item">All experience levels</span>
+        </div>
+    </div>
+
+    <!-- TDEE SECTION -->
+    <section class="home-tdee" aria-labelledby="tdee-home-title">
+        <div class="home-tdee__inner">
+            <div class="home-tdee__left">
+                <span class="section-tag">Nutrition Calculator</span>
+                <h2 id="tdee-home-title">Know your numbers.<br>Hit your goal.</h2>
+                <p>Enter your stats and we'll calculate exactly how many calories you need to cut, maintain, or build muscle.</p>
+            </div>
+            <div class="home-tdee__right">
+                <div class="home-tdee__form">
+                    <div class="home-tdee__row">
+                        <div class="home-tdee__field">
+                            <label for="htAge">Age</label>
+                            <input type="number" id="htAge" placeholder="22" min="13" max="100" inputmode="numeric">
+                        </div>
+                        <div class="home-tdee__field">
+                            <label for="htGender">Sex</label>
+                            <select id="htGender">
+                                <option value="">—</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                        <div class="home-tdee__field">
+                            <label for="htFeet">Ft</label>
+                            <input type="number" id="htFeet" placeholder="5" min="3" max="8" inputmode="numeric">
+                        </div>
+                        <div class="home-tdee__field">
+                            <label for="htInches">In</label>
+                            <input type="number" id="htInches" placeholder="10" min="0" max="11" inputmode="numeric">
+                        </div>
+                        <div class="home-tdee__field">
+                            <label for="htWeight">Weight (lbs)</label>
+                            <input type="number" id="htWeight" placeholder="175" min="50" max="700" inputmode="numeric">
+                        </div>
+                    </div>
+                    <div class="home-tdee__field" style="margin-top: 12px;">
+                        <label for="htActivity">Activity Level</label>
+                        <select id="htActivity">
+                            <option value="">Select activity</option>
+                            <option value="1.2">Sedentary — desk job, little exercise</option>
+                            <option value="1.375">Lightly active — 1–3 days/week</option>
+                            <option value="1.55">Moderately active — 3–5 days/week</option>
+                            <option value="1.725">Very active — 6–7 days/week</option>
+                            <option value="1.9">Extremely active — physical job + training</option>
+                        </select>
+                    </div>
+                    <div id="htError" class="calc-error" style="margin-top: 8px;"></div>
+                    <button class="btn btn-primary btn-large" style="width: 100%; margin-top: 14px;" onclick="calculateHomeTDEE()">Calculate My Calories</button>
+
+                    <div id="htResult" class="home-tdee__result" style="display: none;">
+                        <div class="home-tdee__targets">
+                            <div class="home-tdee__target home-tdee__target--cut">
+                                <span class="home-tdee__target-label">Cut</span>
+                                <span class="home-tdee__target-sub">~1 lb/week loss</span>
+                                <span class="home-tdee__target-value" id="htCut">—</span>
+                            </div>
+                            <div class="home-tdee__target home-tdee__target--maintain">
+                                <span class="home-tdee__target-label">Maintain</span>
+                                <span class="home-tdee__target-sub">your TDEE</span>
+                                <span class="home-tdee__target-value" id="htMaintain">—</span>
+                            </div>
+                            <div class="home-tdee__target home-tdee__target--bulk">
+                                <span class="home-tdee__target-label">Lean Bulk</span>
+                                <span class="home-tdee__target-sub">~0.5 lb/week gain</span>
+                                <span class="home-tdee__target-value" id="htBulk">—</span>
+                            </div>
+                        </div>
+                        <p class="home-tdee__protein">Daily protein: <strong id="htProtein">—</strong> &nbsp;·&nbsp; ~0.82 g/lb bodyweight</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="testimonials" aria-labelledby="testimonials-title">
+        <div class="section-header">
+            <span class="section-tag">Real Results</span>
+            <h2 id="testimonials-title">What lifters are saying</h2>
+        </div>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-stars" aria-label="5 stars">
+                    <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                </div>
+                <p class="testimonial-text">"Finally a program that actually tells you WHY. The periodization made sense from day one — added 40 lbs to my squat in 12 weeks."</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar" aria-hidden="true">JM</div>
+                    <div>
+                        <span class="testimonial-name">Jordan M.</span>
+                        <span class="testimonial-meta">Intermediate · Elite Strength Protocol</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="testimonial-card">
+                <div class="testimonial-stars" aria-label="5 stars">
+                    <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                </div>
+                <p class="testimonial-text">"The Builder matched me with exactly the right program. Zero fluff, pure results. I went from clueless to confident in 4 weeks."</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar" aria-hidden="true">SR</div>
+                    <div>
+                        <span class="testimonial-name">Sarah R.</span>
+                        <span class="testimonial-meta">Beginner · Foundational Strength</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="testimonial-card">
+                <div class="testimonial-stars" aria-label="5 stars">
+                    <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                </div>
+                <p class="testimonial-text">"I've tried every split imaginable. FitPlan's PPL with the built-in deloads and progression is the only thing that's kept me injury-free."</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar" aria-hidden="true">DK</div>
+                    <div>
+                        <span class="testimonial-name">Dev K.</span>
+                        <span class="testimonial-meta">Advanced · Push/Pull/Legs Split</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section id="how-it-works" class="how-it-works" aria-labelledby="how-title">
+        <div class="section-header">
+            <span class="section-tag">The Methodology</span>
+            <h2 id="how-title">Follow the system. Build your physique.</h2>
+        </div>
+
+        <div class="steps-container">
+            <div class="step">
+                <div class="step-number" aria-hidden="true">01</div>
+                <div class="step-content">
+                    <h3>Assess Your Level</h3>
+                    <p>Be honest about your experience. Beginner, Intermediate, or Advanced. Proper progression starts with the right foundation.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number" aria-hidden="true">02</div>
+                <div class="step-content">
+                    <h3>Define Your Goal</h3>
+                    <p>Choose your primary objective. Strength. Hypertrophy. Conditioning. Your goal determines your training stimulus.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number" aria-hidden="true">03</div>
+                <div class="step-content">
+                    <h3>Pick Your Program</h3>
+                    <p>Browse our science-backed workout programs. Match duration, frequency, and focus to your lifestyle. Consistency beats perfection.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number" aria-hidden="true">04</div>
+                <div class="step-content">
+                    <h3>Execute & Track</h3>
+                    <p>Follow the plan. Log your numbers. Watch the progression. Data drives results. No guesswork. Just discipline.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA SECTION -->
+    <section class="cta" aria-labelledby="cta-title">
+        <h2 id="cta-title">Stop guessing. Start building.</h2>
+        <p>Follow a system. Track your progress. Build the physique you want.</p>
+        <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-large" onclick="window.location.href='protocol-builder.html'">Build Your Routine</button>
+            <button class="btn btn-outline btn-large" onclick="window.location.href='tools.html'">View All Calculators</button>
+        </div>
+    </section>
+
+    <!-- ANALYZE PROTOCOL MODAL -->
+    <div id="analyzeModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Foundational Strength Protocol</h2>
+                <button class="modal-close" aria-label="Close modal" onclick="closeModal('analyzeModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <h3>Weekly Split</h3>
+                <ul style="margin: 15px 0; color: var(--text-secondary); line-height: 2;">
+                    <li><strong>Monday:</strong> Full Body – Upper Focus</li>
+                    <li><strong>Wednesday:</strong> Full Body – Lower Focus</li>
+                    <li><strong>Friday:</strong> Full Body – Compound Focus</li>
+                </ul>
+
+                <h3 style="margin-top: 25px;">Key Details</h3>
+                <p>• 3 compound lifts per session<br>
+                • 8–10 sets of working volume<br>
+                • Progressive overload every week<br>
+                • 2–3 min rest between compound sets</p>
+
+                <h3 style="margin-top: 25px;">Expected Results</h3>
+                <p>Week 1–2: Form refinement and adaptation<br>
+                Week 3–4: Strength increases begin</p>
+
+                <button class="btn btn-primary btn-large" style="width: 100%; margin-top: 25px;" onclick="window.location.href='protocol-builder.html'">Start This Protocol</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer" role="contentinfo">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>FitPlan</h4>
+                <p>Science-backed workout programs for every level. Built for results.</p>
+                <div class="footer-social" aria-label="Social links">
+                    <a href="#" aria-label="Twitter/X">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg>
+                    </a>
+                    <a href="#" aria-label="Instagram">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                    </a>
+                    <a href="#" aria-label="YouTube">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg>
+                    </a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4>Training</h4>
+                <ul>
+                    <li><a href="protocols.html">Preset Plans</a></li>
+                    <li><a href="protocol-builder.html">Custom Plan</a></li>
+                    <li><a href="tools.html">Training Tools</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Navigate</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="tools.html">Calculators</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 FitPlan. Built by Adam Parks, Mikiyas Wolde &amp; Tarun Sreekanth.</p>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+</body>
+</html>

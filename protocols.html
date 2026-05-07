@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Workouts — FitPlan</title>
+    <meta name="description" content="Browse all FitPlan training protocols. Filter by experience level, goal, or duration. Find the perfect program for your fitness journey.">
+    <meta property="og:title" content="All Protocols — FitPlan">
+    <meta property="og:description" content="Science-backed training programs for every level, goal, and schedule.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .protocols {
+            padding: 100px 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .protocols-filters {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+        }
+
+        .protocols-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 28px;
+        }
+
+        .protocol-item {
+            background: rgba(18, 18, 22, 0.3);
+            backdrop-filter: blur(12px) saturate(140%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 18px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            will-change: transform;
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.3s ease, box-shadow 0.4s ease;
+        }
+
+        .protocol-item:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            background: rgba(18, 18, 22, 0.5);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 25px rgba(59, 130, 246, 0.1);
+            transform: translateY(-6px);
+        }
+
+        .card-header-accent {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: var(--accent-glow);
+            color: var(--accent);
+            padding: 5px 11px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            border: 1px solid var(--accent);
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .protocol-item h3 {
+            margin-bottom: 10px;
+            margin-top: 12px;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+        }
+
+        .protocol-item > p {
+            margin-bottom: 22px;
+            font-size: 0.93rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+        }
+
+        .protocol-specs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 18px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 18px;
+        }
+
+        .spec { text-align: center; }
+
+        .spec-label {
+            display: block;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        .spec-value {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .protocol-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .protocols-search-wrap {
+            position: relative;
+            max-width: 520px;
+            margin: 0 auto 28px;
+        }
+
+        .protocols-search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .protocols-search {
+            width: 100%;
+            padding: 13px 16px 13px 44px;
+            border-radius: 12px;
+            background: rgba(10, 10, 12, 0.6);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+            box-sizing: border-box;
+        }
+
+        .protocols-search:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.12);
+        }
+
+        .protocols-search::placeholder { color: var(--text-muted); }
+
+        .protocols-filters--muscle { flex-wrap: wrap; }
+
+        @media (max-width: 768px) {
+            .protocols { padding: 60px 20px; }
+            .protocols-grid { grid-template-columns: 1fr; }
+            .protocol-specs { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 480px) {
+            .protocol-specs { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- INTERACTIVE BACKGROUND -->
+    <div class="bg-system" aria-hidden="true">
+        <div class="bg-grid"></div>
+        <div class="glow-orb glow-orb-1"></div>
+        <div class="glow-orb glow-orb-2"></div>
+        <div class="glow-orb-mouse" id="mouseGlowOrb"></div>
+        <div class="grain-overlay"></div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="header" role="banner">
+        <div class="header__left">
+            <a href="index.html" class="header__logo" aria-label="FitPlan home">FitPlan</a>
+        </div>
+        <div class="header__main">
+            <nav class="header__nav" role="navigation" aria-label="Main navigation">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="protocols.html" class="nav-link">Preset Workouts</a>
+                <a href="protocol-builder.html" class="nav-link">Build My Workout</a>
+                <a href="tools.html" class="nav-link">Tools</a>
+                <a href="tracker.html" class="nav-link">My Progress</a>
+            </nav>
+            <button class="theme-toggle" data-theme-toggle aria-label="Toggle dark/light theme">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
+        </div>
+        <div class="header__right">
+            <button class="btn btn-primary" onclick="window.location.href='protocol-builder.html'">Build Routine</button>
+        </div>
+    </header>
+
+    <!-- PROTOCOLS SECTION -->
+    <section class="protocols" aria-labelledby="protocols-title">
+        <div class="section-header">
+            <span class="section-tag">Complete Library</span>
+            <h2 id="protocols-title">Preset Workouts</h2>
+            <p style="margin-top: 12px; color: var(--text-secondary);">Science-backed programs for every level, goal, and schedule.</p>
+        </div>
+
+        <!-- SEARCH -->
+        <div class="protocols-search-wrap">
+            <svg class="protocols-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="protocolSearch" class="protocols-search" placeholder="Search workouts… e.g. squat, hypertrophy, 3 days" aria-label="Search workout programs">
+        </div>
+
+        <!-- LEVEL FILTERS -->
+        <div class="protocols-filters" role="group" aria-label="Filter by experience level">
+            <button class="filter-btn active" data-filter-level="all">All Levels</button>
+            <button class="filter-btn" data-filter-level="beginner">Beginner</button>
+            <button class="filter-btn" data-filter-level="intermediate">Intermediate</button>
+            <button class="filter-btn" data-filter-level="advanced">Advanced</button>
+        </div>
+
+        <!-- MUSCLE GROUP FILTERS -->
+        <div class="protocols-filters protocols-filters--muscle" role="group" aria-label="Filter by muscle group" style="margin-top: 10px;">
+            <button class="filter-btn active" data-filter-muscle="all">All Muscles</button>
+            <button class="filter-btn" data-filter-muscle="full-body">Full Body</button>
+            <button class="filter-btn" data-filter-muscle="chest">Chest</button>
+            <button class="filter-btn" data-filter-muscle="back">Back</button>
+            <button class="filter-btn" data-filter-muscle="legs">Legs</button>
+            <button class="filter-btn" data-filter-muscle="shoulders">Shoulders</button>
+            <button class="filter-btn" data-filter-muscle="arms">Arms</button>
+            <button class="filter-btn" data-filter-muscle="cardio">Cardio</button>
+        </div>
+
+        <div id="protocolNoResults" style="display:none; text-align:center; color: var(--text-muted); padding: 48px 0; font-size: 1rem;">
+            No programs match your search. <button onclick="resetProtocolFilters()" style="color: var(--accent); background:none; border:none; cursor:pointer; font-size:1rem; text-decoration:underline;">Clear filters</button>
+        </div>
+
+        <div class="protocols-grid">
+            <!-- BEGINNER -->
+            <div class="protocol-item" data-level="beginner" data-muscles="full-body chest back legs shoulders">
+                <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&q=75&fit=crop&auto=format" alt="Barbell strength training" class="protocol-card-img" loading="lazy">
+                <div class="card-header-accent"></div>
+                <div class="card-badge">Beginner</div>
+                <h3>Foundational Strength</h3>
+                <p>Master compound movement patterns. Build the base for everything that follows. The starting point for every serious lifter.</p>
+                <div class="protocol-specs">
+                    <div class="spec">
+                        <span class="spec-label">Duration</span>
+                        <span class="spec-value">4 weeks</span>
+                    </div>
+                    <div class="spec">
+                        <span class="spec-label">Frequency</span>
+                        <span class="spec-value">3x/week</span>
+                    </div>
+                    <div class="spec">
+                        <span class="spec-label">Per Session</span>
+                        <span class="spec-value">45 min</span>
+                    </div>
+                </div>
+                <div class="protocol-tags">
+                    <span class="focus-tag">Compound</span>
+                    <span class="focus-tag">Full Body</span>
+                </div>
+                <button class="btn btn-secondary" style="width: 100%;" onclick="window.location.href='protocol-builder.html'">Build This Protocol</button>
+                <button class="btn btn-outline" style="width: 100%; margin-top: 8px;" onclick="openWorkoutModal('foundational-strength')">View Full Workout</button>
+            </div>
+
+            <div class="protocol-item" data-level="beginner" data-muscles="full-body cardio">
+                <img src="https://images.unsplash.com/photo-1538805060514-97d9cc17730c?w=600&q=75&fit=crop&auto=format" alt="Cardio conditioning workout" class="protocol-card-img" loading="lazy">
+                <div class="card-header-accent"></div>
+                <div class="card-badge">Beginner</div>
+                <h3>Conditioning Foundation</h3>
+                <p>Build work capacity and metabolic resilience. Improve energy, endurance, and cardiovascular health from day one.</p>
+                <div class="protocol-specs">
+                    <div class="spec">
+                        <span class="spec-label">Duration</span>
+                        <span class="spec-value">3 weeks</span>
+                    </div>
+                    <div class="spec">
+                        <span class="spec-label">Frequency</span>
+                        <span class="spec-value">4x/week</span>
+                    </div>
+                    <div class="spec">
+                        <span class="spec-label">Per Session</span>
+                        <span class="spec-value">30 min</span>
+                    </div>
+                </div>
+                <div class="protocol-tags">
+                    <span class="focus-tag">Conditioning</span>
+                    <span class="focus-tag">Metabolic</span>
+                </div>
+                <button class="btn btn-secondary" style="width: 100%;" onclick="window.location.href='protocol-builder.html'">Build This Protocol</button>
+                <button class="btn btn-outline" style="width: 100%; margin-top: 8px;" onclick="openWorkoutModal('conditioning-foundation')">View Full Workout</button>
+            </div>
+
+            <!-- INTERMEDIATE -->
+            <div class="protocol-item" data-level="intermediate" data-muscles="chest back arms shoulders legs full-body">
+                <img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&q=75&fit=crop&auto=format" alt="Dumbbell hypertrophy training" class="protocol-card-img" loading="lazy">
+                <div class="card-header-accent"></div>
+                <div class="card-badge">Intermediate</div>
+                <h3>Upper/Lower Hypertrophy</h3>
+                <p>Maximize muscle growth through frequency and volume. Dedicated upper and lower body days drive serious adaptation.</p>
+                <div class="protocol-specs">
+                    <div class="spec">
+                        <span class="spec-label">Duration</span>
+                        <span class="spec-value">8 weeks</span>
+                    </div>
+                    <div class="spec">
+                        <span class="spec-label">Frequency</span>
+                        <span class="spec-value">4x/week</span>
+                    </div>
+                    <div class="spec">
+                        <span class="spec-label">Per Session</span>
+                        <span class="spec-value">60 min</span>
+                    </div>
+                </div>
+                <div class="protocol-tags">
+                    <span class="focus-tag">Hypertrophy</span>
+                    <span class="focus-tag">Volume</span>
+                </div>
+                <button class="btn btn-secondary" style="width: 100%;" onclick="window.location.href='protocol-builder.html'">Build This Protocol</button>
+                <button class="btn btn-outline" style="width: 100%; margin-top: 8px;" onclick="openWorkoutModal('upper-lower-hypertrophy')">View Full Workout</button>
+            </div>
+
+            <div class="protocol-item" data-level="intermediate" data-muscles="chest back legs shoulders arms">
+                <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=75&fit=crop&auto=format" alt="Push pull legs training split" class="protocol-card-img" loading="lazy">
+                <div class="card-header-accent"></div>
+                <div class="card-badge">Intermediate</div>
+                <h3>Push/Pull/Legs Split</h3>
+                <p>Premium periodized system for serious gains. Balanced volume across all movement patterns with progressive overload built-in.</p>
+                <div class="protocol-specs">
+                    <div class="spec">
+                        <span class="spec-label">Duration</span>
+                        <span class="spec-value">12 weeks</span>
+                    </div>
+                    <div class="spec">
+                        <span class="spec-label">Frequency</span>
+                        <span class="spec-value">6x/week</span>
+                    </div>
+                    <div class="spec">
+                        <span class="spec-label">Per Session</span>
+                        <span class="spec-value">75 min</span>
+                    </div>
+                </div>
+                <div class="protocol-tags">
+                    <span class="focus-tag">Hypertrophy</span>
+                    <span class="focus-tag">Periodized</span>
+                </div>
+                <button class="btn btn-secondary" style="width: 100%;" onclick="window.location.href='protocol-builder.html'">Build This Protocol</button>
+                <button class="btn btn-outline" style="width: 100%; margin-top: 8px;" onclick="openWorkoutModal('ppl-split')">View Full Workout</button>
+            </div>
+
+            <!-- ADVANCED -->
+            <div class="protocol-item" data-level="advanced" data-muscles="full-body legs back chest">
+                <img src="https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=600&q=75&fit=crop&auto=format" alt="Elite strength barbell training" class="protocol-card-img" loading="lazy">
+                <div class="card-header-accent"></div>
+                <div class="card-badge">Advanced</div>
+                <h3>Elite Strength Protocol</h3>
+                <p>Maximum strength development through science-backed periodization. Multi-phase loading for serious lifters who need more than linear progression.</p>
+                <div class="protocol-specs">
+                    <div class="spec">
+                        <span class="spec-label">Duration</span>
+                        <span class="spec-value">16 weeks</span>
+                    </div>
+                    <div class="spec">
+                        <span class="spec-label">Frequency</span>
+                        <span class="spec-value">5x/week</span>
+                    </div>
+                    <div class="spec">
+                        <span class="spec-label">Per Session</span>
+                        <span class="spec-value">90 min</span>
+                    </div>
+                </div>
+                <div class="protocol-tags">
+                    <span class="focus-tag">Strength</span>
+                    <span class="focus-tag">Power</span>
+                </div>
+                <button class="btn btn-secondary" style="width: 100%;" onclick="window.location.href='protocol-builder.html'">Build This Protocol</button>
+                <button class="btn btn-outline" style="width: 100%; margin-top: 8px;" onclick="openWorkoutModal('elite-strength')">View Full Workout</button>
+            </div>
+
+            <div class="protocol-item" data-level="advanced" data-muscles="full-body legs back chest arms shoulders">
+                <img src="https://images.unsplash.com/photo-1549060279-7e168fcee0c2?w=600&q=75&fit=crop&auto=format" alt="Competition powerlifting training" class="protocol-card-img" loading="lazy">
+                <div class="card-header-accent"></div>
+                <div class="card-badge">Advanced</div>
+                <h3>Competition Periodization</h3>
+                <p>Advanced multi-phase system designed for peak performance. Four structured phases bring you competition-ready in 20 weeks.</p>
+                <div class="protocol-specs">
+                    <div class="spec">
+                        <span class="spec-label">Duration</span>
+                        <span class="spec-value">20 weeks</span>
+                    </div>
+                    <div class="spec">
+                        <span class="spec-label">Frequency</span>
+                        <span class="spec-value">5–6x/week</span>
+                    </div>
+                    <div class="spec">
+                        <span class="spec-label">Per Session</span>
+                        <span class="spec-value">90 min</span>
+                    </div>
+                </div>
+                <div class="protocol-tags">
+                    <span class="focus-tag">Periodized</span>
+                    <span class="focus-tag">Competition</span>
+                </div>
+                <button class="btn btn-secondary" style="width: 100%;" onclick="window.location.href='protocol-builder.html'">Build This Protocol</button>
+                <button class="btn btn-outline" style="width: 100%; margin-top: 8px;" onclick="openWorkoutModal('competition-peaking')">View Full Workout</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA SECTION -->
+    <section class="cta" aria-labelledby="cta-title">
+        <h2 id="cta-title">Not sure which protocol is right for you?</h2>
+        <p>Use our intelligent Program Builder to get matched with the perfect workout in under 60 seconds.</p>
+        <button class="btn btn-primary btn-large" onclick="window.location.href='protocol-builder.html'">Build Your Protocol</button>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer" role="contentinfo">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>FitPlan</h4>
+                <p>Precision training protocols for every level.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Training</h4>
+                <ul>
+                    <li><a href="protocols.html">Preset Workouts</a></li>
+                    <li><a href="protocol-builder.html">Custom Plan</a></li>
+                    <li><a href="tools.html">Training Tools</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Navigate</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="index.html#faq">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 FitPlan. Built by Adam Parks, Mikiyas Wolde &amp; Tarun Sreekanth.</p>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+</body>
+</html>
