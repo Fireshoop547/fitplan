@@ -1,0 +1,2237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chef & Nutrition — FitPlan</title>
+    <meta name="description" content="Supplements that actually work, healthy meals for cutting, bulking, or maintaining, and store-bought snacks. Full recipes with ingredients and cook instructions.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .nutrition-page {
+            padding: 100px 40px 80px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        /* ---- Sticky Tabs ---- */
+        .nutri-tabs {
+            display: flex;
+            gap: 8px;
+            background: rgba(18,18,22,0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 16px;
+            padding: 6px;
+            margin-bottom: 40px;
+            position: sticky;
+            top: 72px;
+            z-index: 100;
+        }
+
+        .nutri-tab {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 11px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .nutri-tab:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+
+        .nutri-tab.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* ---- Section ---- */
+        .nutri-section { display: none; }
+        .nutri-section.active { display: block; }
+
+        /* ---- Filter bar ---- */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+            align-items: center;
+        }
+
+        .filter-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-secondary);
+            margin-right: 4px;
+        }
+
+        .filter-chip {
+            padding: 7px 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: transparent;
+            border-radius: 20px;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-chip:hover { border-color: rgba(255,107,53,0.4); color: var(--accent); }
+        .filter-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+        .filter-divider {
+            width: 1px;
+            height: 24px;
+            background: rgba(255,255,255,0.1);
+            margin: 0 4px;
+        }
+
+        /* ---- Allergy toggles ---- */
+        .allergy-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: transparent;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .allergy-toggle.active {
+            border-color: #ef4444;
+            color: #ef4444;
+            background: rgba(239,68,68,0.08);
+        }
+
+        .allergy-toggle .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0.5;
+            flex-shrink: 0;
+        }
+
+        .allergy-toggle.active .dot { opacity: 1; }
+
+        /* ---- Supplement grid ---- */
+        .supp-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .supp-card {
+            background: rgba(18,18,22,0.45);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 18px;
+            padding: 24px;
+            transition: border-color 0.3s, transform 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .supp-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+        }
+
+        .supp-card[data-cat="performance"]::before { background: linear-gradient(90deg, #FF6B35, #F7C59F); }
+        .supp-card[data-cat="recovery"]::before    { background: linear-gradient(90deg, #8B5CF6, #A78BFA); }
+        .supp-card[data-cat="health"]::before      { background: linear-gradient(90deg, #22c55e, #86efac); }
+
+        .supp-card:hover {
+            border-color: rgba(255,107,53,0.2);
+            transform: translateY(-2px);
+        }
+
+        .supp-card.hidden { display: none; }
+
+        .supp-cat-badge {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+        }
+
+        .supp-card[data-cat="performance"] .supp-cat-badge { background: rgba(255,107,53,0.15); color: var(--accent); }
+        .supp-card[data-cat="recovery"]    .supp-cat-badge { background: rgba(139,92,246,0.15); color: #A78BFA; }
+        .supp-card[data-cat="health"]      .supp-cat-badge { background: rgba(34,197,94,0.12);  color: #22c55e; }
+
+        .supp-name {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .supp-tagline {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .supp-detail-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .supp-detail {
+            flex: 1;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+
+        .supp-detail-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-secondary);
+            margin-bottom: 3px;
+        }
+
+        .supp-detail-value {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .supp-why {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 12px;
+            margin-top: 4px;
+        }
+
+        /* ---- Meal grid ---- */
+        .meal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 20px;
+        }
+
+        .meal-card {
+            background: rgba(18,18,22,0.45);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 18px;
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+
+        .meal-card:hover { border-color: rgba(255,107,53,0.2); }
+        .meal-card.hidden { display: none; }
+
+        .meal-card-top {
+            padding: 22px 22px 16px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .meal-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .meal-name {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+
+        .meal-badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .meal-badge {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            padding: 3px 9px;
+            border-radius: 20px;
+        }
+
+        .meal-badge.cut      { background: rgba(239,68,68,0.12);  color: #f87171; }
+        .meal-badge.bulk     { background: rgba(34,197,94,0.12);  color: #4ade80; }
+        .meal-badge.maintain { background: rgba(59,130,246,0.12); color: #60a5fa; }
+        .meal-badge.type     { background: rgba(255,255,255,0.06); color: var(--text-secondary); }
+
+        /* Macro bar */
+        .macro-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .macro-item { flex: 1; text-align: center; }
+
+        .macro-val {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .macro-lbl {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 0.06em;
+        }
+
+        .macro-bar-wrap {
+            height: 4px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 4px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .macro-bar { height: 100%; border-radius: 4px; }
+        .macro-bar.protein { background: var(--accent); }
+        .macro-bar.carbs   { background: #60a5fa; }
+        .macro-bar.fat     { background: #facc15; }
+
+        .meal-meta {
+            display: flex;
+            gap: 14px;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .meal-meta span { display: flex; align-items: center; gap: 4px; }
+
+        .meal-expand-icon {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            transition: transform 0.3s;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
+        .meal-card.open .meal-expand-icon { transform: rotate(180deg); }
+
+        /* Meal recipe panel */
+        .meal-recipe {
+            display: none;
+            padding: 0 22px 22px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .meal-card.open .meal-recipe { display: block; }
+
+        .recipe-section-title {
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            margin: 16px 0 8px;
+        }
+
+        .ingredients-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 16px;
+        }
+
+        .ingredients-list li {
+            font-size: 0.84rem;
+            color: var(--text-secondary);
+            padding: 3px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ingredients-list li::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .steps-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .steps-list li {
+            display: flex;
+            gap: 12px;
+            font-size: 0.84rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .step-num {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(255,107,53,0.15);
+            color: var(--accent);
+            font-size: 0.72rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* ---- Snack grid ---- */
+        .snack-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+        }
+
+        .snack-card {
+            background: rgba(18,18,22,0.45);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 20px;
+            transition: border-color 0.25s, transform 0.2s;
+        }
+
+        .snack-card:hover {
+            border-color: rgba(255,107,53,0.2);
+            transform: translateY(-2px);
+        }
+
+        .snack-card.hidden { display: none; }
+
+        .snack-name {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .snack-note {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .snack-macros {
+            display: flex;
+            gap: 10px;
+        }
+
+        .snack-macro {
+            text-align: center;
+            flex: 1;
+        }
+
+        .snack-macro-val {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .snack-macro-lbl {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 48px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* ---- Card images ---- */
+        .card-img-wrap {
+            margin: -24px -24px 20px;
+            height: 170px;
+            overflow: hidden;
+            border-radius: 18px 18px 0 0;
+        }
+        .card-img-wrap img {
+            width: 100%; height: 100%;
+            object-fit: cover; display: block;
+            transition: transform 0.4s ease;
+        }
+        .supp-card:hover .card-img-wrap img { transform: scale(1.04); }
+
+        .snack-img-wrap {
+            margin: -20px -20px 16px;
+            height: 140px;
+            overflow: hidden;
+            border-radius: 16px 16px 0 0;
+        }
+        .snack-img-wrap img {
+            width: 100%; height: 100%;
+            object-fit: cover; display: block;
+            transition: transform 0.4s ease;
+        }
+        .snack-card:hover .snack-img-wrap img { transform: scale(1.04); }
+
+        .meal-thumb {
+            width: 68px; height: 68px;
+            border-radius: 10px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 768px) {
+            .nutrition-page { padding: 80px 18px 60px; }
+            .supp-grid, .meal-grid, .snack-grid { grid-template-columns: 1fr; }
+            .nutri-tabs { top: 64px; }
+            .ingredients-list { grid-template-columns: 1fr; }
+            .filter-bar { gap: 6px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-system" aria-hidden="true">
+        <div class="bg-grid"></div>
+        <div class="glow-orb glow-orb-1"></div>
+        <div class="glow-orb glow-orb-2"></div>
+        <div class="glow-orb-mouse" id="mouseGlowOrb"></div>
+        <div class="grain-overlay"></div>
+    </div>
+
+    <header class="header" role="banner">
+        <div class="header__left">
+            <a href="index.html" class="header__logo" aria-label="FitPlan home">FitPlan</a>
+        </div>
+        <div class="header__main">
+            <nav class="header__nav" role="navigation" aria-label="Main navigation">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="protocols.html" class="nav-link">Preset Workouts</a>
+                <a href="protocol-builder.html" class="nav-link">Build My Workout</a>
+                <a href="tools.html" class="nav-link">Tools</a>
+                <a href="chef.html" class="nav-link">Nutrition</a>
+                <a href="tracker.html" class="nav-link">My Progress</a>
+            </nav>
+            <button class="theme-toggle" data-theme-toggle aria-label="Toggle dark/light theme">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
+        </div>
+        <div class="header__right"></div>
+    </header>
+
+    <main class="nutrition-page">
+        <div class="section-header" style="margin-bottom: 32px;">
+            <span class="section-tag">Fuel Your Training</span>
+            <h2 style="margin: 8px 0 4px;">Chef & Nutrition</h2>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; margin: 0;">Supplements that work. Meals that taste good. All built around your goals.</p>
+        </div>
+
+        <!-- STICKY TABS -->
+        <div class="nutri-tabs" role="tablist">
+            <button class="nutri-tab active" data-tab="supplements" role="tab">Supplements</button>
+            <button class="nutri-tab" data-tab="meals" role="tab">Meals & Recipes</button>
+            <button class="nutri-tab" data-tab="snacks" role="tab">Snacks</button>
+        </div>
+
+        <!-- ===== SUPPLEMENTS ===== -->
+        <section id="tab-supplements" class="nutri-section active">
+            <div class="filter-bar">
+                <span class="filter-label">Filter:</span>
+                <button class="filter-chip active" data-supp-filter="all">All</button>
+                <button class="filter-chip" data-supp-filter="performance">Performance</button>
+                <button class="filter-chip" data-supp-filter="recovery">Recovery</button>
+                <button class="filter-chip" data-supp-filter="health">General Health</button>
+            </div>
+
+            <div class="supp-grid" id="suppGrid">
+
+                <div class="supp-card" data-cat="performance">
+                    <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1693996045899-7cf0ac0229c7?w=600&h=340&fit=crop&q=80" alt="Creatine" onerror="this.parentElement.style.display='none'"></div>
+                    <span class="supp-cat-badge">Performance</span>
+                    <div class="supp-name">Creatine Monohydrate</div>
+                    <div class="supp-tagline">The single most researched supplement in sports science. Works for nearly everyone.</div>
+                    <div class="supp-detail-row">
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">Dose</div>
+                            <div class="supp-detail-value">3–5g daily</div>
+                        </div>
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">When</div>
+                            <div class="supp-detail-value">Any time — consistency matters</div>
+                        </div>
+                    </div>
+                    <div class="supp-why">Replenishes ATP faster during high-intensity efforts. Increases strength, power, muscle volume, and even cognitive function. No loading phase needed — just take it every day.</div>
+                </div>
+
+                <div class="supp-card" data-cat="performance">
+                    <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1693996046865-19217d179161?w=600&h=340&fit=crop&q=80" alt="Whey Protein" onerror="this.parentElement.style.display='none'"></div>
+                    <span class="supp-cat-badge">Performance</span>
+                    <div class="supp-name">Whey Protein</div>
+                    <div class="supp-tagline">Fast-absorbing complete protein. The most convenient way to hit your daily protein target.</div>
+                    <div class="supp-detail-row">
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">Dose</div>
+                            <div class="supp-detail-value">20–40g per serving</div>
+                        </div>
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">When</div>
+                            <div class="supp-detail-value">Post-workout or any time protein is low</div>
+                        </div>
+                    </div>
+                    <div class="supp-why">Whey is a complete protein with a high leucine content — the amino acid that triggers muscle protein synthesis. Use it to fill protein gaps, not replace whole food meals.</div>
+                </div>
+
+                <div class="supp-card" data-cat="performance">
+                    <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1610632380989-680fe40816c6?w=600&h=340&fit=crop&q=80" alt="Caffeine" onerror="this.parentElement.style.display='none'"></div>
+                    <span class="supp-cat-badge">Performance</span>
+                    <div class="supp-name">Caffeine</div>
+                    <div class="supp-tagline">The most proven performance-enhancing compound you can legally take.</div>
+                    <div class="supp-detail-row">
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">Dose</div>
+                            <div class="supp-detail-value">3–6 mg/kg bodyweight</div>
+                        </div>
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">When</div>
+                            <div class="supp-detail-value">30–60 min pre-workout</div>
+                        </div>
+                    </div>
+                    <div class="supp-why">Blocks adenosine receptors reducing perceived exertion, increases power output and endurance. Coffee works just as well as pre-workout. Cycle off periodically to maintain sensitivity.</div>
+                </div>
+
+                <div class="supp-card" data-cat="recovery">
+                    <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1762328500413-1a4cb2023059?w=600&h=340&fit=crop&q=80" alt="Magnesium" onerror="this.parentElement.style.display='none'"></div>
+                    <span class="supp-cat-badge">Recovery</span>
+                    <div class="supp-name">Magnesium Glycinate</div>
+                    <div class="supp-tagline">Over 70% of people are deficient. Critical for muscle function, sleep, and recovery.</div>
+                    <div class="supp-detail-row">
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">Dose</div>
+                            <div class="supp-detail-value">200–400mg elemental</div>
+                        </div>
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">When</div>
+                            <div class="supp-detail-value">30–60 min before bed</div>
+                        </div>
+                    </div>
+                    <div class="supp-why">Glycinate form has the best absorption and is gentlest on the stomach. Improves sleep quality, reduces muscle cramps, supports 300+ enzymatic reactions. One of the most impactful supplements for athletes.</div>
+                </div>
+
+                <div class="supp-card" data-cat="recovery">
+                    <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1763668444855-401b58dceb20?w=600&h=340&fit=crop&q=80" alt="Ashwagandha" onerror="this.parentElement.style.display='none'"></div>
+                    <span class="supp-cat-badge">Recovery</span>
+                    <div class="supp-name">Ashwagandha (KSM-66)</div>
+                    <div class="supp-tagline">Adaptogen that lowers cortisol, improves strength, and enhances sleep quality.</div>
+                    <div class="supp-detail-row">
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">Dose</div>
+                            <div class="supp-detail-value">600mg daily (KSM-66)</div>
+                        </div>
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">When</div>
+                            <div class="supp-detail-value">Morning or before bed</div>
+                        </div>
+                    </div>
+                    <div class="supp-why">Clinical trials show KSM-66 ashwagandha significantly reduces cortisol and stress markers. Also shown to increase testosterone modestly and improve VO2 max. Takes 4–8 weeks for full effect.</div>
+                </div>
+
+                <div class="supp-card" data-cat="recovery">
+                    <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=600&h=340&fit=crop&q=80" alt="Electrolytes" onerror="this.parentElement.style.display='none'"></div>
+                    <span class="supp-cat-badge">Recovery</span>
+                    <div class="supp-name">Electrolytes</div>
+                    <div class="supp-tagline">Sodium, potassium, and magnesium. Essential if you sweat heavily or train in heat.</div>
+                    <div class="supp-detail-row">
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">Dose</div>
+                            <div class="supp-detail-value">1 serving intra or post-workout</div>
+                        </div>
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">When</div>
+                            <div class="supp-detail-value">During or after intense training</div>
+                        </div>
+                    </div>
+                    <div class="supp-why">Electrolyte imbalance is a major cause of cramping, fatigue, and poor performance. Avoid sugar-loaded sports drinks — choose low/no sugar options with meaningful sodium content (500mg+).</div>
+                </div>
+
+                <div class="supp-card" data-cat="health">
+                    <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=600&h=340&fit=crop&q=80" alt="Fish Oil" onerror="this.parentElement.style.display='none'"></div>
+                    <span class="supp-cat-badge">General Health</span>
+                    <div class="supp-name">Fish Oil (Omega-3)</div>
+                    <div class="supp-tagline">EPA and DHA reduce inflammation, support joint health, heart health, and brain function.</div>
+                    <div class="supp-detail-row">
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">Dose</div>
+                            <div class="supp-detail-value">2–3g EPA+DHA daily</div>
+                        </div>
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">When</div>
+                            <div class="supp-detail-value">With a meal containing fat</div>
+                        </div>
+                    </div>
+                    <div class="supp-why">Most people have an extremely high omega-6 to omega-3 ratio from modern diets — fish oil corrects this. Look at the EPA+DHA content on the label, not just total fish oil. Take with food to avoid fishy burps.</div>
+                </div>
+
+                <div class="supp-card" data-cat="health">
+                    <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1763667926453-6a992d38ac43?w=600&h=340&fit=crop&q=80" alt="Vitamin D" onerror="this.parentElement.style.display='none'"></div>
+                    <span class="supp-cat-badge">General Health</span>
+                    <div class="supp-name">Vitamin D3 + K2</div>
+                    <div class="supp-tagline">Critical for immune function, testosterone production, bone health, and mood.</div>
+                    <div class="supp-detail-row">
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">Dose</div>
+                            <div class="supp-detail-value">2,000–5,000 IU D3 + 100mcg K2</div>
+                        </div>
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">When</div>
+                            <div class="supp-detail-value">Morning with a fat-containing meal</div>
+                        </div>
+                    </div>
+                    <div class="supp-why">Most people in northern climates are deficient year-round. K2 (MK-7 form) ensures calcium goes to bones, not arteries — always take with D3. Get bloodwork done to dial in your dose.</div>
+                </div>
+
+                <div class="supp-card" data-cat="health">
+                    <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1624362772755-4d5843e67047?w=600&h=340&fit=crop&q=80" alt="Zinc" onerror="this.parentElement.style.display='none'"></div>
+                    <span class="supp-cat-badge">General Health</span>
+                    <div class="supp-name">Zinc</div>
+                    <div class="supp-tagline">Supports testosterone production, immune health, and wound healing. Depleted by hard training.</div>
+                    <div class="supp-detail-row">
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">Dose</div>
+                            <div class="supp-detail-value">15–30mg elemental zinc</div>
+                        </div>
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">When</div>
+                            <div class="supp-detail-value">Before bed, away from calcium</div>
+                        </div>
+                    </div>
+                    <div class="supp-why">Athletes lose zinc through sweat. Deficiency directly suppresses testosterone and immune function. Don't take on an empty stomach — it can cause nausea. Picolinate and bisglycinate forms absorb best.</div>
+                </div>
+
+                <div class="supp-card" data-cat="recovery">
+                    <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1704650311190-7eeb9c4f6e11?w=600&h=340&fit=crop&q=80" alt="Collagen" onerror="this.parentElement.style.display='none'"></div>
+                    <span class="supp-cat-badge">Recovery</span>
+                    <div class="supp-name">Collagen Peptides</div>
+                    <div class="supp-tagline">Supports joint health, tendons, ligaments, and skin. Underrated for long-term training longevity.</div>
+                    <div class="supp-detail-row">
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">Dose</div>
+                            <div class="supp-detail-value">10–15g daily</div>
+                        </div>
+                        <div class="supp-detail">
+                            <div class="supp-detail-label">When</div>
+                            <div class="supp-detail-value">Before training with vitamin C</div>
+                        </div>
+                    </div>
+                    <div class="supp-why">Collagen synthesis peaks 30–60 min after ingestion — taking it before exercise maximizes delivery to tendons and joints. Combine with 50mg vitamin C for significantly better absorption. Great for injury prevention.</div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ===== MEALS ===== -->
+        <section id="tab-meals" class="nutri-section">
+            <div class="filter-bar" style="flex-wrap:wrap;gap:8px 6px;">
+                <span class="filter-label">Goal:</span>
+                <button class="filter-chip active" data-meal-goal="all">All</button>
+                <button class="filter-chip" data-meal-goal="cut">Cutting</button>
+                <button class="filter-chip" data-meal-goal="bulk">Bulking</button>
+                <button class="filter-chip" data-meal-goal="maintain">Maintaining</button>
+                <div class="filter-divider"></div>
+                <span class="filter-label">Type:</span>
+                <button class="filter-chip active" data-meal-type="all">All</button>
+                <button class="filter-chip" data-meal-type="breakfast">Breakfast</button>
+                <button class="filter-chip" data-meal-type="lunch">Lunch</button>
+                <button class="filter-chip" data-meal-type="dinner">Dinner</button>
+                <div class="filter-divider"></div>
+                <span class="filter-label">Exclude:</span>
+                <button class="allergy-toggle" data-allergy="gluten"><span class="dot"></span> Gluten</button>
+                <button class="allergy-toggle" data-allergy="dairy"><span class="dot"></span> Dairy</button>
+                <button class="allergy-toggle" data-allergy="nuts"><span class="dot"></span> Nuts</button>
+                <button class="allergy-toggle" data-allergy="eggs"><span class="dot"></span> Eggs</button>
+                <button class="allergy-toggle" data-allergy="soy"><span class="dot"></span> Soy</button>
+            </div>
+
+            <div class="meal-grid" id="mealGrid">
+
+                <!-- CUTTING MEALS -->
+                <div class="meal-card" data-goals="cut maintain" data-type="lunch" data-allergens="dairy">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Grilled Chicken & Veggie Bowl</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1705596704813-b39b95549cd2?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges">
+                            <span class="meal-badge cut">Cutting</span>
+                            <span class="meal-badge maintain">Maintaining</span>
+                            <span class="meal-badge type">Lunch / Dinner</span>
+                        </div>
+                        <div class="macro-row">
+                            <div class="macro-item">
+                                <div class="macro-val">480</div>
+                                <div class="macro-lbl">Cal</div>
+                            </div>
+                            <div class="macro-item">
+                                <div class="macro-val">46g</div>
+                                <div class="macro-lbl">Protein</div>
+                                <div class="macro-bar-wrap"><div class="macro-bar protein" style="width:85%"></div></div>
+                            </div>
+                            <div class="macro-item">
+                                <div class="macro-val">38g</div>
+                                <div class="macro-lbl">Carbs</div>
+                                <div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:55%"></div></div>
+                            </div>
+                            <div class="macro-item">
+                                <div class="macro-val">12g</div>
+                                <div class="macro-lbl">Fat</div>
+                                <div class="macro-bar-wrap"><div class="macro-bar fat" style="width:30%"></div></div>
+                            </div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 10 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> 20 min cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>6 oz chicken breast</li>
+                            <li>½ cup brown rice (dry)</li>
+                            <li>1 cup broccoli florets</li>
+                            <li>½ cup bell pepper, sliced</li>
+                            <li>½ cup zucchini, sliced</li>
+                            <li>1 tbsp olive oil</li>
+                            <li>Salt, pepper, garlic powder</li>
+                            <li>Lemon juice to finish</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Cook brown rice per package instructions. Season chicken breast with salt, pepper, and garlic powder on both sides.</li>
+                            <li><span class="step-num">2</span>Heat a skillet or grill pan over medium-high. Add ½ tbsp olive oil. Cook chicken 6–7 min per side until internal temp reaches 165°F. Rest 5 min then slice.</li>
+                            <li><span class="step-num">3</span>In the same pan, add remaining olive oil and cook veggies on high heat for 5–6 min, stirring occasionally. You want them slightly charred.</li>
+                            <li><span class="step-num">4</span>Build the bowl: rice on the bottom, sliced chicken and veggies on top. Squeeze lemon over everything and serve immediately.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="meal-card" data-goals="cut" data-type="breakfast" data-allergens="eggs dairy">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Egg White Scramble with Spinach & Feta</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1551014029-03820d0b88f5?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges">
+                            <span class="meal-badge cut">Cutting</span>
+                            <span class="meal-badge type">Breakfast</span>
+                        </div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">290</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">38g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:90%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">12g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:20%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">8g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:20%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 3 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> 7 min cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>6 egg whites (or carton)</li>
+                            <li>1 whole egg</li>
+                            <li>2 cups fresh spinach</li>
+                            <li>2 tbsp feta cheese</li>
+                            <li>¼ cup diced onion</li>
+                            <li>Cooking spray</li>
+                            <li>Salt, pepper, red pepper flakes</li>
+                            <li>1 slice whole grain toast</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Whisk egg whites and whole egg together with a pinch of salt and pepper. Set aside.</li>
+                            <li><span class="step-num">2</span>Spray a non-stick pan with cooking spray. Over medium heat, sauté diced onion for 2 min until softened. Add spinach and cook until wilted, about 1 min.</li>
+                            <li><span class="step-num">3</span>Pour in egg mixture. Let sit 20 seconds, then gently fold with a spatula. Remove from heat while still slightly glossy — residual heat finishes them.</li>
+                            <li><span class="step-num">4</span>Crumble feta on top. Add red pepper flakes. Serve with toast on the side.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="meal-card" data-goals="cut maintain" data-type="dinner" data-allergens="">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Baked Salmon with Roasted Broccoli</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1499125562588-29fb8a56b5d5?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges">
+                            <span class="meal-badge cut">Cutting</span>
+                            <span class="meal-badge maintain">Maintaining</span>
+                            <span class="meal-badge type">Dinner</span>
+                        </div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">510</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">44g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:80%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">18g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:28%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">28g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:55%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 5 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> 20 min cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>6 oz salmon fillet</li>
+                            <li>2 cups broccoli florets</li>
+                            <li>1 tbsp olive oil</li>
+                            <li>2 garlic cloves, minced</li>
+                            <li>1 tbsp lemon juice</li>
+                            <li>1 tsp Dijon mustard</li>
+                            <li>Salt, pepper, paprika</li>
+                            <li>Fresh dill (optional)</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Preheat oven to 425°F. Line a baking sheet with foil. Toss broccoli with ½ tbsp olive oil, salt, and pepper. Spread on one side of the sheet.</li>
+                            <li><span class="step-num">2</span>Mix remaining olive oil, garlic, lemon juice, Dijon, and paprika. Brush over the salmon fillet. Place on the other side of the baking sheet.</li>
+                            <li><span class="step-num">3</span>Roast everything together for 18–20 min. Salmon is done when it flakes easily with a fork. Broccoli should have slightly crispy edges.</li>
+                            <li><span class="step-num">4</span>Plate together. Top with fresh dill if using. The high-heat roast concentrates all flavors — no sauce needed.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- BULKING MEALS -->
+                <div class="meal-card" data-goals="bulk" data-type="breakfast" data-allergens="gluten eggs nuts dairy">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Peanut Butter Banana Oat Smoothie Bowl</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1641579718751-bffd1f0789be?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges">
+                            <span class="meal-badge bulk">Bulking</span>
+                            <span class="meal-badge type">Breakfast</span>
+                        </div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">720</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">35g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:65%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">92g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:95%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">22g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:45%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 5 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> No cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>1 cup rolled oats</li>
+                            <li>1 scoop vanilla protein powder</li>
+                            <li>1 large banana</li>
+                            <li>2 tbsp peanut butter</li>
+                            <li>1 cup milk (dairy or oat)</li>
+                            <li>1 tbsp honey</li>
+                            <li>Toppings: granola, sliced banana, berries</li>
+                            <li>Pinch of cinnamon</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Blend oats, protein powder, banana, peanut butter, milk, honey, and cinnamon until completely smooth. If too thick, add a splash more milk.</li>
+                            <li><span class="step-num">2</span>Pour into a wide bowl — it should be thick enough to eat with a spoon, not drink. Adjust consistency to your preference.</li>
+                            <li><span class="step-num">3</span>Top with granola for crunch, sliced banana, a drizzle of extra peanut butter, and fresh berries. Eat immediately.</li>
+                            <li><span class="step-num">4</span>Prep tip: blend dry oats first to make oat flour — this gives a smoother texture without gritty bits.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="meal-card" data-goals="bulk" data-type="lunch" data-allergens="gluten">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Ground Beef & Rice Power Bowl</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1625980319455-985e5442c5ae?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges">
+                            <span class="meal-badge bulk">Bulking</span>
+                            <span class="meal-badge type">Lunch / Dinner</span>
+                        </div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">820</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">52g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:95%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">88g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:95%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">24g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:48%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 5 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> 25 min cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>6 oz 90/10 ground beef</li>
+                            <li>1 cup white rice (dry)</li>
+                            <li>½ cup black beans (canned)</li>
+                            <li>½ avocado, sliced</li>
+                            <li>¼ cup salsa</li>
+                            <li>1 tbsp olive oil</li>
+                            <li>Taco seasoning (or cumin, paprika, garlic)</li>
+                            <li>Lime juice, fresh cilantro</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Cook rice per package instructions. While rice cooks, heat olive oil in a skillet over medium-high.</li>
+                            <li><span class="step-num">2</span>Brown ground beef, breaking it up as it cooks. Once no longer pink, drain excess fat. Add taco seasoning and ¼ cup water. Stir and cook 2 more min.</li>
+                            <li><span class="step-num">3</span>Warm black beans in the same pan or microwave for 60 seconds.</li>
+                            <li><span class="step-num">4</span>Build the bowl: rice base, then beef, beans, avocado, and salsa. Squeeze lime over everything and add cilantro. This meal batch-preps well for 3 days.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="meal-card" data-goals="bulk" data-type="dinner" data-allergens="gluten dairy">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Turkey Meat Sauce Pasta</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1579619002916-88cd4c81a70c?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges">
+                            <span class="meal-badge bulk">Bulking</span>
+                            <span class="meal-badge type">Dinner</span>
+                        </div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">750</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">58g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:100%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">78g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:85%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">16g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:32%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 5 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> 30 min cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>8 oz lean ground turkey</li>
+                            <li>3 oz dry pasta (penne or rigatoni)</li>
+                            <li>1 cup marinara sauce</li>
+                            <li>½ onion, diced</li>
+                            <li>3 garlic cloves, minced</li>
+                            <li>1 tsp olive oil</li>
+                            <li>Italian seasoning, salt, pepper</li>
+                            <li>2 tbsp parmesan (optional)</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Boil salted water and cook pasta to al dente per package. Reserve ¼ cup pasta water before draining.</li>
+                            <li><span class="step-num">2</span>In a large skillet, heat olive oil over medium. Sauté onion 3 min, add garlic and cook 1 min more until fragrant.</li>
+                            <li><span class="step-num">3</span>Add ground turkey. Break up and cook until browned, about 7 min. Season with Italian seasoning, salt, and pepper.</li>
+                            <li><span class="step-num">4</span>Add marinara. Simmer 10 min on low heat. Toss in drained pasta and splash of pasta water to help the sauce cling. Serve with parmesan.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- MAINTAINING MEALS -->
+                <div class="meal-card" data-goals="maintain" data-type="lunch" data-allergens="">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Grilled Chicken & Quinoa with Asparagus</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1584278859516-41e5af3920ee?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges">
+                            <span class="meal-badge maintain">Maintaining</span>
+                            <span class="meal-badge type">Lunch / Dinner</span>
+                        </div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">540</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">42g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:78%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">52g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:68%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">14g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:28%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 8 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> 22 min cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>5 oz chicken breast</li>
+                            <li>½ cup quinoa (dry)</li>
+                            <li>1 bunch asparagus, trimmed</li>
+                            <li>1 tbsp olive oil</li>
+                            <li>2 garlic cloves</li>
+                            <li>Lemon zest + juice</li>
+                            <li>Salt, pepper, thyme</li>
+                            <li>Fresh parsley to finish</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Cook quinoa: rinse, then simmer in 1 cup water with a pinch of salt for 15 min. Fluff with a fork and squeeze in half the lemon.</li>
+                            <li><span class="step-num">2</span>Season chicken with salt, pepper, and thyme. Grill or pan-sear over medium-high for 6 min per side. Rest before slicing.</li>
+                            <li><span class="step-num">3</span>While chicken rests, add asparagus to the hot pan with a little olive oil and garlic. Cook 4–5 min, tossing frequently, until bright green and tender-crisp.</li>
+                            <li><span class="step-num">4</span>Plate quinoa, top with sliced chicken and asparagus. Zest lemon over the top, drizzle with olive oil, and finish with parsley.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="meal-card" data-goals="maintain cut" data-type="breakfast" data-allergens="gluten nuts dairy">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Overnight Oats with Protein</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1728078466146-793501657a71?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges">
+                            <span class="meal-badge maintain">Maintaining</span>
+                            <span class="meal-badge cut">Cutting</span>
+                            <span class="meal-badge type">Breakfast</span>
+                        </div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">490</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">40g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:75%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">56g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:72%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">10g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:20%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 5 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> Overnight</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>½ cup rolled oats</li>
+                            <li>1 scoop protein powder (any flavor)</li>
+                            <li>¾ cup milk of choice</li>
+                            <li>¼ cup Greek yogurt</li>
+                            <li>1 tbsp chia seeds</li>
+                            <li>1 tbsp almond butter</li>
+                            <li>Toppings: berries, banana, honey</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>The night before: mix oats, protein powder, chia seeds, Greek yogurt, and milk in a jar or container. Stir well.</li>
+                            <li><span class="step-num">2</span>Seal and refrigerate overnight (minimum 6 hours, up to 3 days). The oats absorb the liquid and thicken significantly.</li>
+                            <li><span class="step-num">3</span>In the morning, stir and check consistency. Add a splash of milk if too thick. Top with almond butter, fresh berries, sliced banana, and a drizzle of honey.</li>
+                            <li><span class="step-num">4</span>Batch note: make 3–4 jars on Sunday and breakfast is handled for most of the week. Toppings go on fresh each morning.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="meal-card" data-goals="maintain bulk" data-type="dinner" data-allergens="gluten soy">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Chicken Stir-Fry with Brown Rice</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1775039984426-544b16dc2993?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges">
+                            <span class="meal-badge maintain">Maintaining</span>
+                            <span class="meal-badge bulk">Bulking</span>
+                            <span class="meal-badge type">Dinner</span>
+                        </div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">620</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">48g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:88%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">66g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:80%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">14g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:28%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 10 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> 15 min cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>6 oz chicken breast, sliced thin</li>
+                            <li>¾ cup brown rice (dry)</li>
+                            <li>1 cup broccoli</li>
+                            <li>1 cup snap peas</li>
+                            <li>½ cup carrots, sliced</li>
+                            <li>3 tbsp low-sodium soy sauce</li>
+                            <li>1 tbsp sesame oil</li>
+                            <li>2 tsp fresh ginger, minced</li>
+                            <li>3 garlic cloves, minced</li>
+                            <li>1 tsp cornstarch + 2 tbsp water</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Cook brown rice. Mix soy sauce, sesame oil, ginger, garlic, and cornstarch slurry in a bowl — this is your sauce.</li>
+                            <li><span class="step-num">2</span>Get a wok or large skillet ripping hot over high heat. Add a splash of oil and cook chicken slices in a single layer for 3 min per side. Remove and set aside.</li>
+                            <li><span class="step-num">3</span>Same pan, add vegetables. Cook on high heat, tossing constantly for 4–5 min. The key is HIGH heat — stir-fry, don't steam.</li>
+                            <li><span class="step-num">4</span>Return chicken to the pan. Pour sauce over everything and toss for 1–2 min until sauce thickens and coats everything. Serve immediately over rice.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- NEW CUTTING MEALS -->
+                <div class="meal-card" data-goals="cut" data-type="lunch" data-allergens="">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Turkey Lettuce Wraps</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1602881916963-5daf2d97c06e?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges"><span class="meal-badge cut">Cutting</span><span class="meal-badge type">Lunch</span></div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">320</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">38g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:90%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">12g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:22%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">10g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:24%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 8 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> 12 min cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>8 oz lean ground turkey</li>
+                            <li>8 large butter lettuce leaves</li>
+                            <li>½ cup water chestnuts, diced</li>
+                            <li>2 green onions, sliced</li>
+                            <li>2 tbsp low-sodium soy sauce</li>
+                            <li>1 tbsp rice vinegar</li>
+                            <li>1 tsp sesame oil</li>
+                            <li>2 garlic cloves, minced</li>
+                            <li>1 tsp fresh ginger</li>
+                            <li>Sriracha to taste</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Mix soy sauce, rice vinegar, sesame oil, and sriracha in a small bowl. Set aside.</li>
+                            <li><span class="step-num">2</span>Cook ground turkey in a hot skillet over medium-high, breaking it up. Once browned, add garlic and ginger — cook 1 min more.</li>
+                            <li><span class="step-num">3</span>Add water chestnuts and pour sauce over the turkey. Toss and cook 2 min until sauce reduces slightly.</li>
+                            <li><span class="step-num">4</span>Spoon filling into lettuce cups. Top with green onions. Eat immediately — the lettuce wilts if it sits.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="meal-card" data-goals="cut" data-type="lunch" data-allergens="">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Tuna & Cucumber Salad</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1600688654899-379ec76aca42?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges"><span class="meal-badge cut">Cutting</span><span class="meal-badge type">Lunch</span></div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">240</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">34g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:85%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">8g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:14%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">7g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:18%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 5 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> No cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>2 cans (5 oz) tuna in water, drained</li>
+                            <li>1 large cucumber, diced</li>
+                            <li>½ cup cherry tomatoes, halved</li>
+                            <li>¼ red onion, finely diced</li>
+                            <li>2 tbsp plain Greek yogurt</li>
+                            <li>1 tsp Dijon mustard</li>
+                            <li>1 tbsp lemon juice</li>
+                            <li>Salt, pepper, fresh dill</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Mix Greek yogurt, Dijon, and lemon juice in a large bowl to make the dressing. Season with salt and pepper.</li>
+                            <li><span class="step-num">2</span>Add drained tuna, cucumber, tomatoes, and red onion. Toss gently to combine — don't break up the tuna completely.</li>
+                            <li><span class="step-num">3</span>Taste and adjust seasoning. Top with fresh dill. Chill 10 min before serving for best flavor.</li>
+                            <li><span class="step-num">4</span>Meal prep note: keeps 2 days refrigerated. Add cucumber day-of to prevent sogginess.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="meal-card" data-goals="cut" data-type="dinner" data-allergens="gluten soy eggs">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Shrimp Cauliflower Fried Rice</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1761314025701-34795be5f737?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges"><span class="meal-badge cut">Cutting</span><span class="meal-badge type">Dinner</span></div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">380</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">36g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:85%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">22g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:36%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">14g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:32%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 10 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> 15 min cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>8 oz large shrimp, peeled</li>
+                            <li>3 cups riced cauliflower (fresh or frozen)</li>
+                            <li>2 eggs, beaten</li>
+                            <li>1 cup frozen peas and carrots</li>
+                            <li>3 green onions, sliced</li>
+                            <li>3 tbsp low-sodium soy sauce</li>
+                            <li>1 tbsp sesame oil</li>
+                            <li>3 garlic cloves, minced</li>
+                            <li>1 tsp fresh ginger</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>If using frozen cauliflower rice, microwave 3 min and squeeze out excess moisture in a towel — this is crucial for non-soggy fried rice.</li>
+                            <li><span class="step-num">2</span>Heat oil in a wok on high. Cook shrimp 2 min per side until pink. Remove and set aside.</li>
+                            <li><span class="step-num">3</span>Same wok: add garlic and ginger, 30 seconds. Add cauliflower rice, spread in a thin layer. Let it sit 2 min to get golden — don't stir. Then toss and repeat.</li>
+                            <li><span class="step-num">4</span>Push rice to one side. Scramble eggs on the empty side. Fold in peas, carrots, shrimp, and soy sauce. Toss everything together, top with green onions.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="meal-card" data-goals="cut maintain" data-type="lunch" data-allergens="dairy">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Greek Chicken Salad</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1697126248475-a537cc5cce28?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges"><span class="meal-badge cut">Cutting</span><span class="meal-badge maintain">Maintaining</span><span class="meal-badge type">Lunch</span></div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">420</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">40g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:90%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">18g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:30%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">16g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:35%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 10 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> 15 min cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>5 oz grilled chicken breast, sliced</li>
+                            <li>3 cups romaine, chopped</li>
+                            <li>½ cucumber, diced</li>
+                            <li>½ cup cherry tomatoes</li>
+                            <li>¼ cup kalamata olives</li>
+                            <li>¼ cup red onion, sliced thin</li>
+                            <li>2 oz feta cheese, crumbled</li>
+                            <li>2 tbsp olive oil + lemon juice</li>
+                            <li>1 tsp dried oregano</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Season chicken with oregano, salt, and pepper. Grill or pan-sear over medium-high, 5–6 min per side. Let rest 5 min, then slice.</li>
+                            <li><span class="step-num">2</span>Make dressing: whisk olive oil, lemon juice, a pinch of oregano, salt, and pepper.</li>
+                            <li><span class="step-num">3</span>Toss romaine, cucumber, tomatoes, olives, and red onion in the dressing. Top with sliced chicken and crumbled feta.</li>
+                            <li><span class="step-num">4</span>Serve immediately. For meal prep, keep dressing separate and add chicken and feta fresh.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="meal-card" data-goals="cut" data-type="dinner" data-allergens="">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Shrimp & Zucchini Noodles</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1774717530911-2ceb99449f7a?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges"><span class="meal-badge cut">Cutting</span><span class="meal-badge type">Dinner</span></div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">310</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">32g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:80%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">14g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:24%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">12g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:28%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 10 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> 10 min cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>8 oz large shrimp, peeled</li>
+                            <li>3 medium zucchini, spiralized</li>
+                            <li>4 garlic cloves, minced</li>
+                            <li>1 cup cherry tomatoes, halved</li>
+                            <li>1 tbsp olive oil</li>
+                            <li>½ tsp red pepper flakes</li>
+                            <li>Lemon juice + zest</li>
+                            <li>Fresh basil, salt, pepper</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Salt the zucchini noodles, let sit 5 min, then pat completely dry. This prevents a watery dish.</li>
+                            <li><span class="step-num">2</span>Heat olive oil in a large skillet over medium-high. Add shrimp, cook 2 min per side. Season with salt, pepper, and red pepper flakes. Remove and set aside.</li>
+                            <li><span class="step-num">3</span>Same pan: add garlic and cook 30 sec. Add tomatoes, cook 2 min until they burst. Add zucchini noodles and toss 1–2 min — just enough to warm, not to make mushy.</li>
+                            <li><span class="step-num">4</span>Return shrimp to the pan, squeeze lemon over everything, toss once more. Finish with fresh basil and lemon zest.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- NEW BULKING MEALS -->
+                <div class="meal-card" data-goals="bulk maintain" data-type="dinner" data-allergens="">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Sirloin Steak & Baked Potato</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1678684279246-96e6afb970f2?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges"><span class="meal-badge bulk">Bulking</span><span class="meal-badge maintain">Maintaining</span><span class="meal-badge type">Dinner</span></div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">780</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">56g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:100%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">72g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:82%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">24g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:48%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 5 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> 55 min cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>8 oz top sirloin steak</li>
+                            <li>1 large russet potato</li>
+                            <li>1 tbsp butter</li>
+                            <li>1 tbsp olive oil</li>
+                            <li>2 garlic cloves, smashed</li>
+                            <li>Fresh rosemary or thyme</li>
+                            <li>Salt (kosher), black pepper</li>
+                            <li>Greek yogurt or sour cream</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Preheat oven to 400°F. Pierce potato all over with a fork, rub with oil and salt. Bake directly on oven rack for 50 min until tender.</li>
+                            <li><span class="step-num">2</span>Remove steak from fridge 30 min before cooking. Pat completely dry. Season aggressively with kosher salt and pepper on both sides.</li>
+                            <li><span class="step-num">3</span>Heat a cast iron over high until smoking. Add oil. Sear steak 3–4 min per side for medium-rare (130°F). In the last minute, add butter, garlic, and herbs — baste continuously.</li>
+                            <li><span class="step-num">4</span>Rest steak 5 min before cutting — this is non-negotiable. Slice against the grain. Serve alongside potato topped with Greek yogurt.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="meal-card" data-goals="bulk maintain" data-type="dinner" data-allergens="">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Crispy Chicken Thigh & Sweet Potato</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1775481391371-fab83ed296e9?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges"><span class="meal-badge bulk">Bulking</span><span class="meal-badge maintain">Maintaining</span><span class="meal-badge type">Dinner</span></div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">690</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">48g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:90%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">58g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:72%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">22g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:44%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 5 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> 35 min cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>2 bone-in chicken thighs, skin-on</li>
+                            <li>1 large sweet potato, cubed</li>
+                            <li>1 tbsp olive oil</li>
+                            <li>1 tsp smoked paprika</li>
+                            <li>1 tsp garlic powder</li>
+                            <li>Salt, pepper, dried thyme</li>
+                            <li>1 tsp honey (optional glaze)</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Preheat oven to 425°F. Toss sweet potato cubes with ½ tbsp olive oil, salt, pepper, and a pinch of paprika. Spread on a baking sheet.</li>
+                            <li><span class="step-num">2</span>Pat chicken thighs completely dry — moisture is the enemy of crispy skin. Season skin side heavily with salt, paprika, garlic powder, and thyme.</li>
+                            <li><span class="step-num">3</span>Sear thighs skin-down in an oven-safe skillet over medium-high for 6–7 min until golden. Flip once, then transfer skillet to the oven alongside the sweet potatoes.</li>
+                            <li><span class="step-num">4</span>Roast 20–22 min until chicken reaches 165°F and sweet potatoes are caramelized at edges. Drizzle honey over sweet potato before serving.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="meal-card" data-goals="bulk" data-type="breakfast" data-allergens="gluten dairy eggs">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Loaded Breakfast Burrito</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1728078466146-793501657a71?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges"><span class="meal-badge bulk">Bulking</span><span class="meal-badge type">Breakfast</span></div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">760</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">45g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:85%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">68g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:78%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">28g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:55%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 5 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> 10 min cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>3 large eggs</li>
+                            <li>2 oz lean ground beef or turkey</li>
+                            <li>1 large flour tortilla (10-inch)</li>
+                            <li>¼ cup black beans, drained</li>
+                            <li>¼ cup shredded Mexican cheese</li>
+                            <li>¼ cup salsa</li>
+                            <li>½ avocado, mashed</li>
+                            <li>Salt, cumin, garlic powder</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Brown ground beef in a skillet over medium-high with cumin, garlic powder, and salt. Drain fat. Push to one side.</li>
+                            <li><span class="step-num">2</span>Whisk eggs. On the empty side of the pan, scramble them over medium-low — remove from heat while still slightly wet.</li>
+                            <li><span class="step-num">3</span>Warm tortilla 30 sec per side in a dry pan. Layer: eggs, beef, beans, cheese, salsa, and mashed avocado down the center.</li>
+                            <li><span class="step-num">4</span>Fold bottom up, tuck in sides, roll tight. Optional: sear the seam-side down for 1 min for a toasted burrito.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="meal-card" data-goals="bulk" data-type="breakfast" data-allergens="gluten dairy eggs nuts">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">PB Banana French Toast</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1728078466146-793501657a71?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges"><span class="meal-badge bulk">Bulking</span><span class="meal-badge type">Breakfast</span></div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">640</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">38g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:72%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">70g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:80%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">20g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:42%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 3 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> 8 min cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>3 thick slices brioche or sourdough</li>
+                            <li>3 eggs</li>
+                            <li>¼ cup milk</li>
+                            <li>1 tsp vanilla extract</li>
+                            <li>1 tsp cinnamon</li>
+                            <li>2 tbsp peanut butter</li>
+                            <li>1 banana, sliced</li>
+                            <li>1 tbsp honey or maple syrup</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Whisk eggs, milk, vanilla, and cinnamon in a wide shallow bowl. This is your custard dip.</li>
+                            <li><span class="step-num">2</span>Heat a non-stick skillet over medium. Melt a small pat of butter. Dip each bread slice in custard for 20 seconds per side — don't soak too long or it falls apart.</li>
+                            <li><span class="step-num">3</span>Cook each slice 2–3 min per side until golden brown. Work in batches if needed.</li>
+                            <li><span class="step-num">4</span>Stack on a plate. Spread peanut butter between slices, layer banana on top, drizzle with honey. High-calorie, high-reward breakfast.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="meal-card" data-goals="bulk" data-type="breakfast" data-allergens="dairy nuts">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Mass Gainer Smoothie</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1685967836529-b0e8d6938227?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges"><span class="meal-badge bulk">Bulking</span><span class="meal-badge type">Breakfast</span></div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">840</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">52g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:100%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">100g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:100%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">22g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:44%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 5 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> No cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>2 scoops whey protein (vanilla)</li>
+                            <li>1 cup whole milk</li>
+                            <li>1 cup rolled oats</li>
+                            <li>2 bananas (frozen works best)</li>
+                            <li>2 tbsp peanut butter</li>
+                            <li>1 tbsp honey</li>
+                            <li>1 tbsp chia or flax seeds</li>
+                            <li>Handful of ice</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Blend oats first by themselves for 20 seconds to turn into a flour — smoother texture with no gritty chunks.</li>
+                            <li><span class="step-num">2</span>Add all remaining ingredients. Blend on high for 60 seconds until completely smooth.</li>
+                            <li><span class="step-num">3</span>Taste and adjust: too thick? Add more milk. Need more sweetness? Add honey. Drinking calories is the easiest way to hit a surplus when appetite is an issue.</li>
+                            <li><span class="step-num">4</span>Drink immediately for best texture. Can also prep ahead and refrigerate overnight — shake before drinking.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- NEW MAINTAINING MEALS -->
+                <div class="meal-card" data-goals="maintain cut" data-type="dinner" data-allergens="gluten dairy">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Fish Tacos with Mango Slaw</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1620791144170-8a443bf37a33?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges"><span class="meal-badge maintain">Maintaining</span><span class="meal-badge cut">Cutting</span><span class="meal-badge type">Dinner</span></div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">520</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">38g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:85%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">44g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:60%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">16g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:34%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 10 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> 12 min cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>6 oz cod or tilapia fillet</li>
+                            <li>4 small corn tortillas</li>
+                            <li>1 cup shredded red cabbage</li>
+                            <li>½ cup mango, diced</li>
+                            <li>2 tbsp lime juice</li>
+                            <li>1 tbsp Greek yogurt</li>
+                            <li>Chili powder, cumin, garlic powder</li>
+                            <li>Fresh cilantro, jalapeño</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Make the mango slaw: toss cabbage, mango, lime juice, and a pinch of salt. Set aside to marinate 10 min while you cook the fish.</li>
+                            <li><span class="step-num">2</span>Season fish with chili powder, cumin, garlic powder, salt. Heat a skillet over medium-high with a spray of oil. Cook fish 3–4 min per side until it flakes easily.</li>
+                            <li><span class="step-num">3</span>Char tortillas directly over a gas flame 20 seconds per side, or in a dry skillet. Keeps them pliable without being soggy.</li>
+                            <li><span class="step-num">4</span>Flake fish over tortillas. Top with mango slaw, a dollop of Greek yogurt (acts as crema), jalapeño, and cilantro.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="meal-card" data-goals="maintain" data-type="lunch" data-allergens="gluten dairy">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Turkey & Avocado Sandwich</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1685967836529-b0e8d6938227?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges"><span class="meal-badge maintain">Maintaining</span><span class="meal-badge type">Lunch</span></div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">490</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">36g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:80%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">38g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:52%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">18g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:38%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 5 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> No cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>4 oz sliced turkey breast (deli)</li>
+                            <li>2 slices whole grain bread</li>
+                            <li>½ avocado, mashed</li>
+                            <li>1 slice provolone or Swiss cheese</li>
+                            <li>2 leaves romaine lettuce</li>
+                            <li>2 slices tomato</li>
+                            <li>1 tsp Dijon mustard</li>
+                            <li>Salt, pepper, red onion (optional)</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Toast bread to your preference — toasting prevents the avocado from making it soggy if packing for lunch.</li>
+                            <li><span class="step-num">2</span>Mash avocado with a pinch of salt, pepper, and a squeeze of lemon. Spread generously on one slice.</li>
+                            <li><span class="step-num">3</span>Spread Dijon on the other slice. Layer turkey, cheese, lettuce, tomato, and red onion.</li>
+                            <li><span class="step-num">4</span>Press together and cut diagonally. If meal prepping, pack avocado separately and add at lunchtime.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="meal-card" data-goals="maintain cut" data-type="dinner" data-allergens="">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Red Lentil & Spinach Soup</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1620791144170-8a443bf37a33?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges"><span class="meal-badge maintain">Maintaining</span><span class="meal-badge cut">Cutting</span><span class="meal-badge type">Dinner</span></div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">380</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">22g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:52%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">54g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:70%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">6g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:14%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 8 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> 25 min cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>1 cup red lentils, rinsed</li>
+                            <li>3 cups vegetable broth</li>
+                            <li>2 cups fresh spinach</li>
+                            <li>1 can (14 oz) diced tomatoes</li>
+                            <li>1 onion, diced</li>
+                            <li>3 garlic cloves, minced</li>
+                            <li>1 tsp cumin + 1 tsp turmeric</li>
+                            <li>1 tbsp olive oil, lemon juice</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Heat olive oil in a large pot. Sauté onion 4 min until soft. Add garlic, cumin, and turmeric — cook 1 min until fragrant.</li>
+                            <li><span class="step-num">2</span>Add lentils, diced tomatoes, and broth. Bring to a boil, then reduce to a simmer. Cook 18–20 min until lentils are completely soft and starting to break down.</li>
+                            <li><span class="step-num">3</span>Use an immersion blender to partially blend — you want a thick, creamy base with some texture remaining. Alternatively, mash with a spoon.</li>
+                            <li><span class="step-num">4</span>Stir in spinach and lemon juice. Cook 2 more min. Season to taste. This soup freezes perfectly — batch cook for the week.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="meal-card" data-goals="maintain" data-type="lunch" data-allergens="dairy">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">Mediterranean Grain Bowl</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1600688654899-379ec76aca42?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges"><span class="meal-badge maintain">Maintaining</span><span class="meal-badge type">Lunch / Dinner</span></div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">570</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">34g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:78%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">58g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:72%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">20g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:42%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 10 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> 20 min cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>½ cup farro or bulgur wheat</li>
+                            <li>4 oz grilled chicken or chickpeas</li>
+                            <li>½ cup hummus</li>
+                            <li>½ cup cucumber, diced</li>
+                            <li>½ cup cherry tomatoes</li>
+                            <li>¼ cup kalamata olives</li>
+                            <li>2 oz feta cheese</li>
+                            <li>Olive oil, lemon, oregano, za'atar</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Cook farro per package instructions (typically 20 min in salted water). Drain and season with a drizzle of olive oil and lemon while warm.</li>
+                            <li><span class="step-num">2</span>Grill or pan-sear chicken with oregano and garlic. Slice thin. If using chickpeas, roast at 400°F for 20 min with olive oil and za'atar until crispy.</li>
+                            <li><span class="step-num">3</span>Build the bowl: farro base, then arrange cucumber, tomatoes, olives, and protein in sections. Add a big scoop of hummus on one side.</li>
+                            <li><span class="step-num">4</span>Crumble feta over everything. Drizzle with olive oil and lemon juice. Sprinkle za'atar. This bowl works warm or cold.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="meal-card" data-goals="maintain bulk" data-type="dinner" data-allergens="gluten soy eggs">
+                    <div class="meal-card-top" onclick="toggleMeal(this)">
+                        <div class="meal-header">
+                            <div class="meal-name">High-Protein Egg Fried Rice</div>
+                            <img class="meal-thumb" src="https://images.unsplash.com/photo-1711633648859-1eac3e5969b9?w=136&h=136&fit=crop&q=80" alt="" onerror="this.style.display='none'">
+                            <span class="meal-expand-icon">▾</span>
+                        </div>
+                        <div class="meal-badges"><span class="meal-badge maintain">Maintaining</span><span class="meal-badge bulk">Bulking</span><span class="meal-badge type">Dinner</span></div>
+                        <div class="macro-row">
+                            <div class="macro-item"><div class="macro-val">580</div><div class="macro-lbl">Cal</div></div>
+                            <div class="macro-item"><div class="macro-val">36g</div><div class="macro-lbl">Protein</div><div class="macro-bar-wrap"><div class="macro-bar protein" style="width:82%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">62g</div><div class="macro-lbl">Carbs</div><div class="macro-bar-wrap"><div class="macro-bar carbs" style="width:76%"></div></div></div>
+                            <div class="macro-item"><div class="macro-val">16g</div><div class="macro-lbl">Fat</div><div class="macro-bar-wrap"><div class="macro-bar fat" style="width:34%"></div></div></div>
+                        </div>
+                        <div class="meal-meta">
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 5 min prep</span>
+                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> 15 min cook</span>
+                        </div>
+                    </div>
+                    <div class="meal-recipe">
+                        <div class="recipe-section-title">Ingredients</div>
+                        <ul class="ingredients-list">
+                            <li>2 cups day-old cooked white rice</li>
+                            <li>4 eggs</li>
+                            <li>4 oz chicken breast or shrimp, diced</li>
+                            <li>1 cup frozen peas and carrots</li>
+                            <li>3 green onions, sliced</li>
+                            <li>3 tbsp low-sodium soy sauce</li>
+                            <li>1 tbsp sesame oil</li>
+                            <li>2 garlic cloves, minced</li>
+                        </ul>
+                        <div class="recipe-section-title">Instructions</div>
+                        <ol class="steps-list">
+                            <li><span class="step-num">1</span>Day-old cold rice is essential — fresh rice is too moist and clumps together. Spread it on a plate and refrigerate overnight if possible.</li>
+                            <li><span class="step-num">2</span>Heat wok on maximum heat. Add sesame oil, cook chicken or shrimp until done, 3–4 min. Remove and set aside.</li>
+                            <li><span class="step-num">3</span>Add garlic to the hot wok for 30 sec. Add rice — spread flat and press down. Let it sit 1–2 min without stirring to get crispy edges. Toss and repeat.</li>
+                            <li><span class="step-num">4</span>Push rice aside, scramble eggs on empty side until just set. Fold in peas, carrots, protein, and soy sauce. Toss everything, top with green onions. Serve hot.</li>
+                        </ol>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ===== SNACKS ===== -->
+        <section id="tab-snacks" class="nutri-section">
+            <div class="filter-bar">
+                <span class="filter-label">Goal:</span>
+                <button class="filter-chip active" data-snack-filter="all">All</button>
+                <button class="filter-chip" data-snack-filter="cut">Cutting</button>
+                <button class="filter-chip" data-snack-filter="bulk">Bulking</button>
+                <button class="filter-chip" data-snack-filter="maintain">Maintaining</button>
+            </div>
+            <div class="snack-grid" id="snackGrid">
+
+                <div class="snack-card" data-goals="cut maintain bulk">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1571212515416-fef01fc43637?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">Greek Yogurt (Plain, 2%)</div>
+                    <div class="snack-note">One of the best protein-per-dollar foods you can buy. Add berries or honey for flavor. Look for brands with 15g+ protein per serving.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">130</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">17g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">9g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">4g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+                <div class="snack-card" data-goals="cut maintain">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1652209695374-7a91c243f12f?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">Beef Jerky</div>
+                    <div class="snack-note">Portable, no refrigeration needed, high satiety. Watch sodium content. Jack Link's, Chomps, or Epic bars are solid picks. Avoid ones with added sugar.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">80</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">14g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">3g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">2g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+                <div class="snack-card" data-goals="cut maintain bulk">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1559561853-08451507cbe7?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">Cottage Cheese (Low-fat)</div>
+                    <div class="snack-note">High in casein protein — digests slowly, making it ideal before bed to support overnight muscle repair. Eat plain or mix with fruit. Good Good brand is popular.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">110</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">14g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">5g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">2.5g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+                <div class="snack-card" data-goals="cut maintain">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1551014029-03820d0b88f5?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">Hard-Boiled Eggs (2)</div>
+                    <div class="snack-note">Complete protein with every essential amino acid. Cheap, satiating, and prep in bulk on Sundays for the whole week. Sprinkle with everything bagel seasoning.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">140</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">12g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">1g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">10g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+                <div class="snack-card" data-goals="bulk maintain">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1706467563677-d7980d75b58a?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">Rice Cakes + Peanut Butter</div>
+                    <div class="snack-note">Fast carbs from the rice cake plus healthy fat and protein from peanut butter. Great pre-workout fuel. 2 rice cakes + 2 tbsp PB is the standard serving.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">230</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">8g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">22g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">14g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+                <div class="snack-card" data-goals="cut maintain bulk">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1633360821154-1935fb5671e6?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">Protein Bar (Quest / Kirkland)</div>
+                    <div class="snack-note">Convenience food — not a whole food replacement, but great when you're traveling or short on time. Quest and Kirkland Signature bars have the best protein-to-calorie ratios. Avoid ones with 20g+ sugar.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">190</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">21g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">22g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">7g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+                <div class="snack-card" data-goals="cut maintain">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1649257171206-37625b1f3b2f?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">Edamame (Shelled)</div>
+                    <div class="snack-note">Plant-based complete protein with fiber, magnesium, and iron. Found frozen in any grocery store. Microwave in the bag, hit with sea salt, done in 4 minutes.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">150</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">13g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">12g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">5g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+                <div class="snack-card" data-goals="bulk maintain">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1605024344839-e6e41aea6b23?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">Mixed Nuts (1 oz)</div>
+                    <div class="snack-note">Calorie-dense and portable. High in healthy fats, vitamin E, and magnesium. Portion control is key — weigh them. Almonds, cashews, and walnuts are the best picks.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">170</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">5g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">6g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">15g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+                <div class="snack-card" data-goals="cut maintain">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1573810655264-8d1e50f1592d?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">String Cheese</div>
+                    <div class="snack-note">Underrated snack. High in protein and calcium, no prep required, zero sugar. Two sticks is a solid portion. Pairs well with an apple or some cherry tomatoes.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">160</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">14g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">2g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">10g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+                <div class="snack-card" data-goals="bulk maintain">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1642339800118-eb551cfa1434?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">Apple + Almond Butter</div>
+                    <div class="snack-note">Natural sugars from the apple for quick energy, healthy fat and protein from almond butter for sustained fullness. Great pre-workout snack 60 min before training.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">280</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">7g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">34g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">14g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+                <div class="snack-card" data-goals="bulk maintain">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1685967836529-b0e8d6938227?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">Banana + Protein Shake</div>
+                    <div class="snack-note">Quickest post-workout combo. Banana replenishes glycogen fast, whey kickstarts muscle protein synthesis. Blend or eat separately — both work equally well.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">380</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">32g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">55g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">5g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+                <div class="snack-card" data-goals="cut maintain">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1633442496335-af4d20202da3?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">Tuna Pouch</div>
+                    <div class="snack-note">Starkist or Bumble Bee flavor packs (lemon pepper, ranch, sriracha) require zero prep. Eat straight from the pouch or on crackers. Zero carbs, high satiety for the calories.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">100</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">20g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">0g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">2g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+                <div class="snack-card" data-goals="cut maintain">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1637949385162-e416fb15b2ce?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">Hummus + Veggies</div>
+                    <div class="snack-note">High fiber, plant-based protein, and healthy fat from olive oil. Pair with carrots, celery, cucumber, or bell pepper strips. Sabra single-serve cups are convenient for on-the-go.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">150</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">6g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">18g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">7g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+                <div class="snack-card" data-goals="bulk maintain">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1553909489-ec2175ef3f52?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">Chocolate Milk (Low-fat)</div>
+                    <div class="snack-note">Studies show low-fat chocolate milk rivals commercial recovery drinks for post-workout recovery. Contains fast and slow protein (whey + casein), carbs to restore glycogen, and electrolytes.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">180</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">9g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">28g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">5g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+                <div class="snack-card" data-goals="maintain cut">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1776447402055-7d2e7a714b2d?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">Pumpkin Seeds (1 oz)</div>
+                    <div class="snack-note">One of the best plant-based magnesium and zinc sources. High in healthy fats and protein. Great for topping salads, yogurt, or eating plain. Roasted with sea salt is the move.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">160</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">9g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">5g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">14g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+                <div class="snack-card" data-goals="cut maintain">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">Sardines in Water</div>
+                    <div class="snack-note">Pound for pound one of the most nutrient-dense foods on earth. High in EPA/DHA omega-3s, calcium, vitamin D, and protein. Wild Planet brand is clean with no fillers.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">130</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">22g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">0g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">5g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+                <div class="snack-card" data-goals="cut maintain">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1706467563677-d7980d75b58a?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">Turkey Slices + Cheese</div>
+                    <div class="snack-note">Roll deli turkey slices around a slice of cheese for a zero-carb, high-protein snack. No prep required. Good for between meals when you're traveling or at the office.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">150</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">18g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">2g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">8g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+                <div class="snack-card" data-goals="bulk maintain">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1777891258039-970dd7e6e14c?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">Medjool Dates + Almond Butter</div>
+                    <div class="snack-note">Nature's energy bar. Dates are extremely high in natural sugar — perfect for a pre-workout boost 45 min before training. Pair with almond butter for sustained release and healthy fats.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">290</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">6g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">44g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">10g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+                <div class="snack-card" data-goals="maintain cut">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1633442496335-af4d20202da3?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">Crackers + Tuna Pack</div>
+                    <div class="snack-note">Starkist flavor packs come with crackers included in some varieties — or pair any single-serve tuna pouch with Ritz whole grain crackers. Satisfying crunch with solid protein per serving.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">200</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">19g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">22g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">4g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+                <div class="snack-card" data-goals="cut maintain bulk">
+                    <div class="snack-img-wrap"><img src="https://images.unsplash.com/photo-1693996046865-19217d179161?w=520&h=280&fit=crop&q=80" alt="" onerror="this.parentElement.style.display='none'"></div>
+                    <div class="snack-name">Whey Protein Shake</div>
+                    <div class="snack-note">The simplest high-protein snack. Mix with water for fewer calories, milk for more. Best post-workout or between meals when whole food isn't available. Look for brands with under 5g sugar.</div>
+                    <div class="snack-macros">
+                        <div class="snack-macro"><div class="snack-macro-val">120</div><div class="snack-macro-lbl">Cal</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">25g</div><div class="snack-macro-lbl">Protein</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">5g</div><div class="snack-macro-lbl">Carbs</div></div>
+                        <div class="snack-macro"><div class="snack-macro-val">2g</div><div class="snack-macro-lbl">Fat</div></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer" role="contentinfo">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>FitPlan</h4>
+                <p>Science-backed workout programs for every level. Built for results.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Training</h4>
+                <ul>
+                    <li><a href="protocols.html">Preset Plans</a></li>
+                    <li><a href="protocol-builder.html">Custom Plan</a></li>
+                    <li><a href="tools.html">Training Tools</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Nutrition</h4>
+                <ul>
+                    <li><a href="chef.html#tab-supplements">Supplements</a></li>
+                    <li><a href="chef.html#tab-meals">Meal Recipes</a></li>
+                    <li><a href="chef.html#tab-snacks">Snacks</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 FitPlan. Built by Adam Parks, Mikiyas Wolde &amp; Tarun Sreekanth.</p>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+        // ===== TAB SWITCHING =====
+        document.querySelectorAll('.nutri-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.nutri-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.nutri-section').forEach(s => s.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Support deep-link via hash
+        if (window.location.hash) {
+            const id = window.location.hash.slice(1);
+            const tab = document.querySelector(`[data-tab="${id.replace('tab-', '')}"]`);
+            if (tab) tab.click();
+        }
+
+        // ===== SUPPLEMENT FILTERS =====
+        document.querySelectorAll('[data-supp-filter]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('[data-supp-filter]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const f = btn.dataset.suppFilter;
+                document.querySelectorAll('.supp-card').forEach(card => {
+                    card.classList.toggle('hidden', f !== 'all' && card.dataset.cat !== f);
+                });
+            });
+        });
+
+        // ===== MEAL FILTERS =====
+        let activeGoal = 'all';
+        let activeType = 'all';
+        let excludedAllergens = new Set();
+
+        function applyMealFilters() {
+            document.querySelectorAll('.meal-card').forEach(card => {
+                const goals = card.dataset.goals || '';
+                const type  = card.dataset.type  || '';
+                const allergens = card.dataset.allergens || '';
+
+                const goalOk = activeGoal === 'all' || goals.includes(activeGoal);
+                const typeOk = activeType === 'all' || type.includes(activeType);
+                const allergenOk = [...excludedAllergens].every(a => !allergens.includes(a));
+
+                card.classList.toggle('hidden', !(goalOk && typeOk && allergenOk));
+            });
+        }
+
+        document.querySelectorAll('[data-meal-goal]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('[data-meal-goal]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeGoal = btn.dataset.mealGoal;
+                applyMealFilters();
+            });
+        });
+
+        document.querySelectorAll('[data-meal-type]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('[data-meal-type]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeType = btn.dataset.mealType;
+                applyMealFilters();
+            });
+        });
+
+        document.querySelectorAll('.allergy-toggle').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.classList.toggle('active');
+                const a = btn.dataset.allergy;
+                if (btn.classList.contains('active')) excludedAllergens.add(a);
+                else excludedAllergens.delete(a);
+                applyMealFilters();
+            });
+        });
+
+        // ===== MEAL EXPAND/COLLAPSE =====
+        function toggleMeal(top) {
+            const card = top.closest('.meal-card');
+            card.classList.toggle('open');
+        }
+
+        // ===== SNACK FILTERS =====
+        document.querySelectorAll('[data-snack-filter]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('[data-snack-filter]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const f = btn.dataset.snackFilter;
+                document.querySelectorAll('.snack-card').forEach(card => {
+                    const goals = card.dataset.goals || '';
+                    card.classList.toggle('hidden', f !== 'all' && !goals.includes(f));
+                });
+            });
+        });
+    </script>
+</body>
+</html>
