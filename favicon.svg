@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#111"/>
+  <!-- left plate (big circle) -->
+  <circle cx="12" cy="32" r="10" fill="#F97316"/>
+  <!-- right plate (big circle) -->
+  <circle cx="52" cy="32" r="10" fill="#F97316"/>
+  <!-- bar connecting them -->
+  <rect x="20" y="27" width="24" height="10" rx="5" fill="#F97316"/>
+  <!-- left collar ring -->
+  <rect x="18" y="25" width="6" height="14" rx="3" fill="#FB923C"/>
+  <!-- right collar ring -->
+  <rect x="40" y="25" width="6" height="14" rx="3" fill="#FB923C"/>
+</svg>
